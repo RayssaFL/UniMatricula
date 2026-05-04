@@ -1,0 +1,54 @@
+.desempenho{
+    background-color:  rgb(62, 138, 213) ;
+    color: white;
+border-radius: 10px;
+font-size: 12px;
+margin: 13px;
+}
+
+.accordion-button:not(.collapsed) {
+  background-color: rgb(62, 138, 213) !important;
+  color: white !important;
+}
+
+.accordion-button:not(.collapsed)::after {
+  filter: brightness(0) invert(1);
+}
+
+.accordion-item {
+  border-radius: 0 !important;
+}
+
+.accordion-button {
+  border-radius: 0 !important;
+}
+
+.accordion-item:first-of-type {
+  border-radius: 0 !important;
+}
+
+.accordion-item:last-of-type {
+  border-radius: 0 !important;
+}
+
+.accordion-item:first-of-type .accordion-button {
+  border-radius: 0 !important;
+}
+
+.accordion-item:last-of-type .accordion-button.collapsed {
+  border-radius: 0 !important;
+}
+
+.accordion-button {
+  padding: 9px 16px !important; 
+}
+
+.accordion-body {
+  padding: 0 !important;
+}
+
+.accordion-body p {
+  padding: 12px 16px;
+  margin: 0;
+  border-bottom: 1px solid #dee2e6;
+}

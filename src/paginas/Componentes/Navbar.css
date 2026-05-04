@@ -1,0 +1,32 @@
+
+.proprio-navbar {
+    background-color: rgb(62, 138, 213) !important;
+}
+
+.proprio-navbar .nav-link,
+.proprio-navbar .navbar-brand,
+.proprio-navbar .dropdown-toggle {
+    color: #e0e0e0 !important;
+}
+
+
+.proprio-navbar .nav-link:hover,
+.proprio-navbar .dropdown-toggle:hover,
+.proprio-navbar .nav-link:focus {
+  color: #e0e0e0 !important;
+  color: white !important;
+
+}
+
+.proprio-navbar .dropdown-menu {
+   color: #e0e0e0 !important;
+}
+
+.proprio-navbar .dropdown-item {
+  color: #212529 !important;
+}
+
+.proprio-navbar .dropdown-item:hover {
+   color: #e0e0e0 !important;
+  color: #212529 !important;
+}

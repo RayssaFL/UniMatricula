@@ -1,0 +1,6 @@
+.imagem-carrossel{
+    width: 100%;
+    object-fit: cover;
+    object-position: center;
+    padding: 20px;
+}
