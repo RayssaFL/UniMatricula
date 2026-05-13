@@ -1,0 +1,118 @@
+import { useState } from 'react'
+import { useNavigate } from "react-router-dom"
+import './inicio.css'
+import logo from '../assets/novologin.png';
+import fundo from '../assets/fundo2.png'
+import Form from 'react-bootstrap/Form';
+import Spinner from 'react-bootstrap/Spinner';
+import Button from "react-bootstrap/Button";
+
+function Inicio() {
+    const [matricula, setMatricula] = useState('')
+    const [senha, setSenha] = useState('')
+    const [carregando, setCarregando] = useState(false);
+    const [erros, setErros] = useState({});
+    const navigate = useNavigate();
+
+    function validar() {
+        let novosErros = {};
+
+        if (!matricula) {
+            novosErros.matricula = "Matrícula é obrigatória";
+        } else if (!/^\d+$/.test(matricula)) {
+            novosErros.matricula = "Matrícula deve conter apenas números";
+        } else if (matricula.length < 7) {
+            novosErros.matricula = "Matrícula deve ter no mínimo 7 dígitos";
+        }
+        if (!senha) {
+            novosErros.senha = "Senha é obrigatória";
+        } else if (!/^\d+$/.test(senha)) {
+            novosErros.senha = "Senha deve conter apenas números";
+        } else if (senha.length < 8) {
+            novosErros.senha = "Senha deve ter no mínimo 8 dígitos";
+        }
+        setErros(novosErros);
+        return Object.keys(novosErros).length === 0;
+    }
+
+    function Ler(e){
+        e.preventDefault();
+        if (!validar()) return;
+        setCarregando(true);
+        setTimeout(() => {
+            navigate("/dashboard")
+        }, 2000);
+    }
+
+    return (
+    <>
+        <div className='fundo' style={{ backgroundImage : `url(${fundo})`}}>
+            <div className='todo'>
+                <img src={logo} alt="" className='imagem'/>  
+                    <div className='titulos'>
+                        <h1>Acesso ao Unifor online</h1>
+                        <h2>Aqui você encontra os serviços digitais da Universidade de Fortaleza.</h2>
+                    </div>
+                <form onSubmit={Ler} className="container">
+                    <Form.Group className="mb-3">
+                        <Form.Label>Matrícula</Form.Label>
+                        <Form.Control 
+                            type="text"
+                            placeholder="Digite sua matrícula aqui" 
+                            value={matricula}
+                            onChange={(e) => {
+                                const valor = e.target.value.replace(/\D/g, "");
+                                setMatricula(valor);
+                            }}
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            className={erros.matricula ? "is-invalid" : ""}
+                        />
+                        {erros.matricula && (
+                            <div className="invalid-feedback">
+                                {erros.matricula}
+                            </div>
+                        )}
+                    </Form.Group>
+
+                    <Form.Group className="mb-3">
+                        <Form.Label>Senha</Form.Label>
+                        <Form.Control 
+                            type="password"
+                            placeholder="Digite sua senha aqui" 
+                            value={senha}
+                            onChange={(e) => {
+                                const valor = e.target.value.replace(/\D/g, "");
+                                setSenha(valor);
+                            }}
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            className={erros.senha ? "is-invalid" : ""}
+                        />
+                        {erros.senha && (
+                            <div className="invalid-feedback">
+                                {erros.senha}
+                            </div>
+                        )}
+                        <p><a href="#">Esqueceu a senha?</a></p>
+                        <Button 
+                            type="submit" 
+                            disabled={carregando} 
+                            className="btn btn-primary w-100">
+                            {carregando 
+                                ? <Spinner animation="border" size="sm" /> 
+                                : "Acessar"
+                            }
+                        </Button>
+                        <p>
+                            <a href="https://unifor.br/">Voltar para o portal Unifor</a>
+                        </p>
+                    </Form.Group>
+                </form>
+            </div>
+        </div>
+    </>
+    )
+}
+
+export default Inicio;

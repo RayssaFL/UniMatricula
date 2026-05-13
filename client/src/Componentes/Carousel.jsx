@@ -1,7 +1,7 @@
 
 import Carousel from 'react-bootstrap/Carousel';
-import Imagemcarro1 from '../../assets/avareal.png';
-import Imagemcarro2 from '../../assets/avareal2.png';
+import Imagemcarro1 from '../assets/avareal.png';
+import Imagemcarro2 from '../assets/avareal2.png';
 import './Carousel.css'
 
 function Carrossel() {

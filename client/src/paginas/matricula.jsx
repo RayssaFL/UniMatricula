@@ -1,5 +1,5 @@
 import { useState } from "react";
-import Navbar from "./Componentes/Navbar";
+import Navbar from "../Componentes/Navbar";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";

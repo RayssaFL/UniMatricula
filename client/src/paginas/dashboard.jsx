@@ -1,12 +1,12 @@
-import Navbar from "./Componentes/Navbar";
+import Navbar from "../Componentes/Navbar"
 import { useState } from "react";
-import Carrossel from "./Componentes/Carousel";
-import  Listateste from "./Componentes/Lista"
-import Avisos from "./Componentes/Cardss";
+import Carrossel from "../Componentes/Carousel";
+import  Listateste from "../Componentes/Lista"
+import Avisos from "../Componentes/Cardss";
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
-import MeuAccordion from "./Componentes/Listaacorde";
+import MeuAccordion from "../Componentes/Listaacorde";
 import Accordion from 'react-bootstrap/Accordion';
 import "./dashboard.css"
 
@@ -28,10 +28,7 @@ const disciplinasAluno = (() => {
   return (
     <>
       <Navbar/>
-     
      <Carrossel/>
-
-
      <Avisos/>
 
 <p className="desempenho">Desempenho</p>
