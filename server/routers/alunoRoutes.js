@@ -5,7 +5,6 @@ import {
 } from "../controllers/alunoController.js";
 
 const router = express.Router();
-
 router.post("/register", cadastrarAluno);
 router.post("/login", loginAluno);
 

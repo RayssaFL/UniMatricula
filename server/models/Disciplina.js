@@ -1,13 +1,21 @@
 import mongoose from "mongoose";
 
 const DisciplinaSchema = new mongoose.Schema({
-  nome: { type: String, required: true },
+  nome: {
+    type: String,
+    required: true
+  },
   quantidadeCreditos: {
     type: Number,
     required: true
   },
   cargaHoraria: {
     type: Number,
+    required: true
+  },
+  tipo: {
+    type: String,
+    enum: ["Obrigatória", "Optativa"],
     required: true
   },
   curso: {

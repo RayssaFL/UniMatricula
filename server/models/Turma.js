@@ -12,9 +12,20 @@ const TurmaSchema = new mongoose.Schema({
     required: true
   },
   sala: String,
+  dia: {
+    type: String,
+    required: true,
+    enum: ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"]
+  },
+  turno: {
+    type: String,
+    required: true,
+    enum: ["Manhã", "Tarde", "Noite"]
+  },
   horario: {
     type: String,
-    required: true
+    required: true,
+    enum: ["AB", "CD", "EF"]
   },
   vagasTotais: {
     type: Number,
@@ -27,4 +38,5 @@ const TurmaSchema = new mongoose.Schema({
   semestre: Number,
   ano: Number
 });
+
 export default mongoose.model("Turma", TurmaSchema);

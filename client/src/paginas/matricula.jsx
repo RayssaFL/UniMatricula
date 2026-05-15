@@ -3,15 +3,19 @@ import Navbar from "../Componentes/Navbar";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
-import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import Table from "react-bootstrap/Table";
+import Accordion from "react-bootstrap/Accordion";
 import { useNavigate } from "react-router-dom";
-import { getTurmas, criarMatricula } from "../services/api";
+import {
+  getTurmas,
+  criarMatricula,
+  getMinhaMatricula,
+  verificarToken
+} from "../services/api";
 import "./matricula.css";
 
 function Matricula() {
-  const [busca, setBusca] = useState("");
   const [disciplinas, setDisciplinas] = useState([]);
   const [selecionadas, setSelecionadas] = useState([]);
 
@@ -21,7 +25,6 @@ function Matricula() {
 
   try {
     const alunoStorage = localStorage.getItem("aluno");
-
     if (alunoStorage && alunoStorage !== "undefined") {
       aluno = JSON.parse(alunoStorage);
     }
@@ -30,25 +33,33 @@ function Matricula() {
     localStorage.removeItem("aluno");
   }
 
-  const alunoId = aluno?.id;
-
-
   useEffect(() => {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      navigate("/");
+    async function validar() {
+      try {
+        await verificarToken();
+      } catch {
+        localStorage.removeItem("token");
+        localStorage.removeItem("aluno");
+        navigate("/");
+      }
     }
-  }, []);
 
+    validar();
+  }, [navigate]);
 
   useEffect(() => {
     async function load() {
       try {
-        const data = await getTurmas();
-        setDisciplinas(data);
+        const turmas = await getTurmas();
+        const matriculaAtual = await getMinhaMatricula();
+
+        setDisciplinas(turmas);
+
+        if (matriculaAtual?.turmas) {
+          setSelecionadas(matriculaAtual.turmas);
+        }
       } catch (err) {
-        console.log("Erro ao carregar turmas:", err);
+        console.log("Erro ao carregar dados:", err);
       }
     }
 
@@ -57,81 +68,117 @@ function Matricula() {
 
   const dias = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
 
-  function toggleMateria(turma) {
-    const existe = selecionadas.find((m) => m._id === turma._id);
+  const horariosManha = ["A", "B", "C", "D", "E", "F"];
+  const horariosTarde = ["A", "B", "C", "D", "E", "F"];
+  const horariosNoite = ["A", "B", "C", "D"];
 
-    if (existe) {
+  function getNomeDisciplina(turma) {
+    return turma?.disciplina?.nome || "Disciplina sem nome";
+  }
+
+  function getNomeProfessor(turma) {
+    return turma?.professor?.nome || "Professor não informado";
+  }
+
+  function getTipoDisciplina(turma) {
+    return turma?.disciplina?.tipo || "Tipo não informado";
+  }
+
+  function getVagasInfo(turma) {
+    const vagasTotais = turma?.vagasTotais || 0;
+    const vagasOcupadas = turma?.vagasOcupadas || 0;
+    const restantes = vagasTotais - vagasOcupadas;
+
+    return {
+      restantes,
+      texto: `Vagas: ${vagasOcupadas}/${vagasTotais} (Restam ${restantes})`,
+      cor: restantes > 0 ? "green" : "red",
+    };
+  }
+
+  function horarioContemCelula(horarioTurma, celula) {
+    return horarioTurma?.includes(celula);
+  }
+
+  function existeConflitoHorario(turmaNova) {
+    return selecionadas.find(
+      (turmaSelecionada) =>
+        turmaSelecionada._id !== turmaNova._id &&
+        turmaSelecionada.dia === turmaNova.dia &&
+        turmaSelecionada.turno === turmaNova.turno &&
+        [...turmaSelecionada.horario].some((letra) =>
+          turmaNova.horario.includes(letra)
+        )
+    );
+  }
+
+  function toggleMateria(turma) {
+    if (turma.vagasOcupadas >= turma.vagasTotais) return;
+
+    const jaSelecionada = selecionadas.find((m) => m._id === turma._id);
+
+    if (jaSelecionada) {
       setSelecionadas(selecionadas.filter((m) => m._id !== turma._id));
       return;
     }
 
-    const conflito = selecionadas.find(
-      (m) =>
-        m.dia === turma.dia &&
-        m.horario === turma.horario &&
-        m.turno === turma.turno
+    const nomeNova = getNomeDisciplina(turma);
+
+    const disciplinaRepetida = selecionadas.find(
+      (m) => getNomeDisciplina(m) === nomeNova
     );
 
-    if (conflito) {
-      alert("Já existe matéria nesse horário!");
+    if (disciplinaRepetida) {
+      alert("Essa disciplina já foi selecionada em outra turma.");
       return;
     }
 
-    if (turma.vagasOcupadas >= turma.vagasTotais) {
-      alert("Turma lotada!");
+    const conflitoHorario = existeConflitoHorario(turma);
+
+    if (conflitoHorario) {
+      alert("Já existe matéria nesse horário!");
       return;
     }
 
     setSelecionadas([...selecionadas, turma]);
   }
 
-  function getTurma(dia, horario, turno) {
-    return disciplinas.find(
-      (d) =>
-        d.dia === dia &&
-        d.horario === horario &&
-        d.turno === turno
+  function getTurmaSelecionada(dia, celula, turno) {
+    return selecionadas.find(
+      (turma) =>
+        turma.dia === dia &&
+        turma.turno === turno &&
+        horarioContemCelula(turma.horario, celula)
     );
   }
 
-  function isSelected(dia, horario, turno) {
-    return selecionadas.some(
-      (m) =>
-        m.dia === dia &&
-        m.horario === horario &&
-        m.turno === turno
-    );
-  }
-
-  function renderCell(dia, horario, turno) {
-    const turma = getTurma(dia, horario, turno);
-    const selected = isSelected(dia, horario, turno);
+  function renderCell(dia, celula, turno) {
+    const turma = getTurmaSelecionada(dia, celula, turno);
 
     return (
       <td
-        key={`${dia}-${horario}-${turno}`}
-        onClick={() => turma && toggleMateria(turma)}
-        style={{
-          cursor: turma ? "pointer" : "default",
-          backgroundColor: selected ? "#0d6efd" : "",
-          color: selected ? "white" : "",
-          opacity:
-            turma && turma.vagasOcupadas >= turma.vagasTotais ? 0.5 : 1,
-        }}
+        key={`${dia}-${celula}-${turno}`}
+        className={turma ? "celula-selecionada" : ""}
       >
-        {turma ? turma.disciplina.nome : ""}
+        {turma ? (
+          <>
+            <strong>{getNomeDisciplina(turma)}</strong>
+
+            <div style={{ fontSize: "10px" }}>
+              {turma.vagasTotais - turma.vagasOcupadas} vagas
+            </div>
+
+            <div style={{ fontSize: "12px" }}>✔ Selecionada</div>
+          </>
+        ) : (
+          ""
+        )}
       </td>
     );
   }
 
-
   async function salvar() {
     try {
-      if (!alunoId) {
-        alert("Erro: aluno não identificado");
-        return;
-      }
-
       if (selecionadas.length === 0) {
         alert("Selecione pelo menos uma disciplina");
         return;
@@ -139,20 +186,14 @@ function Matricula() {
 
       const ids = selecionadas.map((t) => t._id);
 
-      const res = await criarMatricula(alunoId, ids);
+      await criarMatricula(ids);
 
-      alert(res.msg || "Matrícula realizada com sucesso");
-
-      localStorage.setItem(
-        "disciplinasMatriculadas",
-        JSON.stringify(selecionadas)
-      );
+      alert("Matrícula efetuada com sucesso");
 
       navigate("/dashboard");
-
     } catch (err) {
       console.log(err);
-      alert("Erro ao salvar matrícula");
+      alert(err?.response?.data?.msg || "Erro ao salvar matrícula");
     }
   }
 
@@ -166,22 +207,87 @@ function Matricula() {
 
       <Container className="mt-4">
         <Row className="g-3">
-          <Col md={6}>
-            <Form.Control value={aluno.nome || ""} readOnly />
-          </Col>
-
-          <Col md={6}>
-            <Form.Control
-              placeholder="Buscar disciplina"
-              value={busca}
-              onChange={(e) => setBusca(e.target.value)}
+          <Col md={12}>
+            <input
+              id="nomeAluno"
+              name="nomeAluno"
+              className="form-control"
+              value={aluno.nome || ""}
+              readOnly
             />
           </Col>
         </Row>
+
+        <p className="mt-3">
+          Disciplinas selecionadas: <strong>{selecionadas.length}</strong>
+        </p>
+
+        <Accordion className="mt-3">
+          <Accordion.Item eventKey="0">
+            <Accordion.Header>Selecionar Disciplina</Accordion.Header>
+
+            <Accordion.Body>
+              {disciplinas.length === 0 && <p>Nenhuma disciplina disponível</p>}
+
+              {disciplinas.map((turma) => {
+                const selecionada = selecionadas.some(
+                  (t) => t._id === turma._id
+                );
+
+                const vagas = getVagasInfo(turma);
+                const lotada = turma.vagasOcupadas >= turma.vagasTotais;
+
+                return (
+                  <div
+                    key={turma._id}
+                    onClick={() => toggleMateria(turma)}
+                    className="item-disciplina"
+                    style={{
+                      cursor: lotada ? "not-allowed" : "pointer",
+                      backgroundColor: selecionada ? "#198754" : "#fff",
+                      color: selecionada ? "#fff" : "#000",
+                      opacity: lotada ? 0.5 : 1,
+                    }}
+                  >
+                    <strong>{getNomeDisciplina(turma)}</strong> <br />
+
+                    <small>Tipo: {getTipoDisciplina(turma)}</small>
+                    <br />
+
+                    <small>Professor: {getNomeProfessor(turma)}</small>
+                    <br />
+
+                    <small>Sala: {turma.sala || "Sala não informada"}</small>
+                    <br />
+
+                    <small>
+                      {turma.dia} - {turma.horario} ({turma.turno})
+                    </small>
+                    <br />
+
+                    <small style={{ color: selecionada ? "#fff" : vagas.cor }}>
+                      {vagas.texto}
+                    </small>
+
+                    {lotada && (
+                      <div style={{ fontSize: "12px", color: "red" }}>
+                        Turma lotada
+                      </div>
+                    )}
+
+                    {selecionada && (
+                      <div style={{ fontSize: "12px" }}>✔ Selecionada</div>
+                    )}
+                  </div>
+                );
+              })}
+            </Accordion.Body>
+          </Accordion.Item>
+        </Accordion>
       </Container>
 
       <h2 className="mt-4">Manhã</h2>
-      <Table striped bordered hover responsive className="text-center">
+      <Table striped bordered hover responsive className="text-center tabela-matricula">
         <thead>
           <tr>
             <th>Horário</th>
@@ -191,7 +297,7 @@ function Matricula() {
           </tr>
         </thead>
         <tbody>
-          {["A", "B", "C", "D", "E", "F"].map((h) => (
+          {horariosManha.map((h) => (
             <tr key={h}>
               <td>{h}</td>
               {dias.map((d) => renderCell(d, h, "Manhã"))}
@@ -201,9 +307,17 @@ function Matricula() {
       </Table>
 
       <h2 className="mt-4">Tarde</h2>
-      <Table striped bordered hover responsive className="text-center">
+      <Table striped bordered hover responsive className="text-center tabela-matricula">
+        <thead>
+          <tr>
+            <th>Horário</th>
+            {dias.map((d) => (
+              <th key={d}>{d}</th>
+            ))}
+          </tr>
+        </thead>
         <tbody>
-          {["A", "B", "C", "D", "E", "F"].map((h) => (
+          {horariosTarde.map((h) => (
             <tr key={h}>
               <td>{h}</td>
               {dias.map((d) => renderCell(d, h, "Tarde"))}
@@ -213,9 +327,17 @@ function Matricula() {
       </Table>
 
       <h2 className="mt-4">Noite</h2>
-      <Table striped bordered hover responsive className="text-center">
+      <Table striped bordered hover responsive className="text-center tabela-matricula">
+        <thead>
+          <tr>
+            <th>Horário</th>
+            {dias.map((d) => (
+              <th key={d}>{d}</th>
+            ))}
+          </tr>
+        </thead>
         <tbody>
-          {["A", "B", "C", "D"].map((h) => (
+          {horariosNoite.map((h) => (
             <tr key={h}>
               <td>{h}</td>
               {dias.map((d) => renderCell(d, h, "Noite"))}
