@@ -12,11 +12,19 @@ const TurmaSchema = new mongoose.Schema({
     required: true
   },
   sala: String,
-  horario: { type: String, required: true },
-  vagasTotais: Number,
-  vagasOcupadas: Number,
+  horario: {
+    type: String,
+    required: true
+  },
+  vagasTotais: {
+    type: Number,
+    required: true
+  },
+  vagasOcupadas: {
+    type: Number,
+    default: 0
+  },
   semestre: Number,
   ano: Number
 });
-
 export default mongoose.model("Turma", TurmaSchema);

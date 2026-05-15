@@ -2,8 +2,14 @@ import mongoose from "mongoose";
 
 const DisciplinaSchema = new mongoose.Schema({
   nome: { type: String, required: true },
-  quantidadeCreditos: Number,
-  cargaHoraria: Number,
+  quantidadeCreditos: {
+    type: Number,
+    required: true
+  },
+  cargaHoraria: {
+    type: Number,
+    required: true
+  },
   curso: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Curso"

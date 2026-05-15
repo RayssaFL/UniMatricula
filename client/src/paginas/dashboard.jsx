@@ -13,8 +13,6 @@ import "./dashboard.css"
 function Dashboard() {
 const [ativo, setAtivo] = useState("0");
 const [ativoBaixo, setAtivoBaixo] = useState("0");
-
-
 const disciplinasAluno = (() => {
   const salvas = localStorage.getItem("disciplinasMatriculadas")
   if (salvas) {
@@ -23,15 +21,12 @@ const disciplinasAluno = (() => {
   }
   return []
 })
-
-
   return (
     <>
       <Navbar/>
-     <Carrossel/>
-     <Avisos/>
-
-<p className="desempenho">Desempenho</p>
+      <Carrossel/>
+      <Avisos/>
+      <p className="desempenho">Desempenho</p>
 
   <Container className="mt-5">
     <Row className="g-4 align-items-stretch">

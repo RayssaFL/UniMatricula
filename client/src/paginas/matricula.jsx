@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "../Componentes/Navbar";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
@@ -7,59 +7,157 @@ import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import Table from "react-bootstrap/Table";
 import { useNavigate } from "react-router-dom";
-import './matricula.css'
+import { getTurmas, criarMatricula } from "../services/api";
+import "./matricula.css";
 
 function Matricula() {
   const [busca, setBusca] = useState("");
-  const [lista, setLista] = useState([]);
-  const disciplina = (() => {
-  const salvas = localStorage.getItem("disciplinasMatriculadas")
-  if (salvas) {
-    return JSON.parse(salvas)
-  }
-  return []
-})()
- const alunoId = 1
-const navigate = useNavigate();
+  const [disciplinas, setDisciplinas] = useState([]);
+  const [selecionadas, setSelecionadas] = useState([]);
 
+  const navigate = useNavigate();
 
-  function adicionarMateria(item) {
-      const jaAdicionada = lista.find(
-      (m) => m.dia === item.dia && m.horario === item.horario && m.turno === item.turno && m.vagas === item.vagas
-    );
-    if (jaAdicionada) {
-      alert("Já existe uma matéria nesse horário e dia!");
-      return;
+  let aluno = null;
+
+  try {
+    const alunoStorage = localStorage.getItem("aluno");
+
+    if (alunoStorage && alunoStorage !== "undefined") {
+      aluno = JSON.parse(alunoStorage);
     }
-    setLista([...lista, item]);
+  } catch (err) {
+    console.log("Erro ao ler aluno:", err);
+    localStorage.removeItem("aluno");
   }
 
- 
-
-function salvar() {
-  localStorage.setItem("disciplinasMatriculadas", JSON.stringify(lista));
-   fetch(`URL_API/matriculas/${alunoId}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        disciplinas: lista
-      })
-    })
-      .then((res) => res.json())
-      .then(() => {navigate("/dashboard")})
-      .catch((err) => console.log(err));
-  }
+  const alunoId = aluno?.id;
 
 
-const aluno = {
-  nome : "Matheus",
-  sobrenome : "Silva",
-  curso : "Medicina"
-}
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      navigate("/");
+    }
+  }, []);
+
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const data = await getTurmas();
+        setDisciplinas(data);
+      } catch (err) {
+        console.log("Erro ao carregar turmas:", err);
+      }
+    }
+
+    load();
+  }, []);
 
   const dias = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+
+  function toggleMateria(turma) {
+    const existe = selecionadas.find((m) => m._id === turma._id);
+
+    if (existe) {
+      setSelecionadas(selecionadas.filter((m) => m._id !== turma._id));
+      return;
+    }
+
+    const conflito = selecionadas.find(
+      (m) =>
+        m.dia === turma.dia &&
+        m.horario === turma.horario &&
+        m.turno === turma.turno
+    );
+
+    if (conflito) {
+      alert("Já existe matéria nesse horário!");
+      return;
+    }
+
+    if (turma.vagasOcupadas >= turma.vagasTotais) {
+      alert("Turma lotada!");
+      return;
+    }
+
+    setSelecionadas([...selecionadas, turma]);
+  }
+
+  function getTurma(dia, horario, turno) {
+    return disciplinas.find(
+      (d) =>
+        d.dia === dia &&
+        d.horario === horario &&
+        d.turno === turno
+    );
+  }
+
+  function isSelected(dia, horario, turno) {
+    return selecionadas.some(
+      (m) =>
+        m.dia === dia &&
+        m.horario === horario &&
+        m.turno === turno
+    );
+  }
+
+  function renderCell(dia, horario, turno) {
+    const turma = getTurma(dia, horario, turno);
+    const selected = isSelected(dia, horario, turno);
+
+    return (
+      <td
+        key={`${dia}-${horario}-${turno}`}
+        onClick={() => turma && toggleMateria(turma)}
+        style={{
+          cursor: turma ? "pointer" : "default",
+          backgroundColor: selected ? "#0d6efd" : "",
+          color: selected ? "white" : "",
+          opacity:
+            turma && turma.vagasOcupadas >= turma.vagasTotais ? 0.5 : 1,
+        }}
+      >
+        {turma ? turma.disciplina.nome : ""}
+      </td>
+    );
+  }
+
+
+  async function salvar() {
+    try {
+      if (!alunoId) {
+        alert("Erro: aluno não identificado");
+        return;
+      }
+
+      if (selecionadas.length === 0) {
+        alert("Selecione pelo menos uma disciplina");
+        return;
+      }
+
+      const ids = selecionadas.map((t) => t._id);
+
+      const res = await criarMatricula(alunoId, ids);
+
+      alert(res.msg || "Matrícula realizada com sucesso");
+
+      localStorage.setItem(
+        "disciplinasMatriculadas",
+        JSON.stringify(selecionadas)
+      );
+
+      navigate("/dashboard");
+
+    } catch (err) {
+      console.log(err);
+      alert("Erro ao salvar matrícula");
+    }
+  }
+
+  if (!aluno) return null;
+
   return (
     <>
       <Navbar />
@@ -67,139 +165,68 @@ const aluno = {
       <h1>Matrícula</h1>
 
       <Container className="mt-4">
-       <Row className="g-3">
-       <Col md={6}>
-        <Form.Control 
-        type="text"
-        value={`${aluno.nome} ${aluno.sobrenome} - ${aluno.curso} `}
-        readOnly />
-        
-        </Col>
-       
-        <Col md={6}>
-        <Form.Control
-          type="text"
-          placeholder="Matérias a cursar"
-          value={busca}
-          onChange={(e) => {
-            setBusca(e.target.value);
-          }}
-        />
+        <Row className="g-3">
+          <Col md={6}>
+            <Form.Control value={aluno.nome || ""} readOnly />
+          </Col>
 
-        {busca &&disciplina
-          .filter((disciplina) =>
-            disciplina.nome.toLowerCase().includes(busca.toLowerCase()),
-          )
-          .map((disciplina, index) => (
-           
-            <div
-             key={index}
-             onClick={() => adicionarMateria(disciplina)}
-             className="item-disciplina"
-              >
-               {disciplina.nome} [{disciplina.turno}-{disciplina.horario} ({disciplina.dia})({disciplina.vagas})]
+          <Col md={6}>
+            <Form.Control
+              placeholder="Buscar disciplina"
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+            />
+          </Col>
+        </Row>
+      </Container>
 
-            </div>
-          ))}
-     </Col>
-     </Row>
-     </Container>
       <h2 className="mt-4">Manhã</h2>
-        <Table striped bordered hover responsive className="mt-4 text-center">
-          <thead>
-            <tr>
-              <th>Horário/dia</th>
-             <th>Segunda</th>
-            <th>Terça</th>
-            <th>Quarta</th>
-            <th>Quinta</th>
-            <th>Sexta</th>
-            <th>Sábado</th>
-            </tr>
-          </thead>
-          <tbody>
-            {["A", "B", "C", "D", "E", "F"].map((horario) => (
-              <tr key={horario}>
-                <td>{horario}</td>
-            {dias.map((dia) => {
-                  const materia = lista.find(
-                    (m) => m.dia === dia && m.horario === horario && m.turno === "Manhã",
-                  );
-
-                  return <td key={dia}>{materia ? materia.nome : ""}</td>;
-                })}
-              </tr>
+      <Table striped bordered hover responsive className="text-center">
+        <thead>
+          <tr>
+            <th>Horário</th>
+            {dias.map((d) => (
+              <th key={d}>{d}</th>
             ))}
-          </tbody>
-        </Table>
-     
-     <h2 className="mt-4">Tarde</h2>
-     <Table striped bordered hover responsive className="mt-4 text-center">
-  <thead>
-    <tr>
-      <th>Horário /dia</th>
-      <th>Segunda</th>
-      <th>Terça</th>
-      <th>Quarta</th>
-      <th>Quinta</th>
-      <th>Sexta</th>
-      <th>Sábado</th>
-    </tr>
-  </thead>
+          </tr>
+        </thead>
+        <tbody>
+          {["A", "B", "C", "D", "E", "F"].map((h) => (
+            <tr key={h}>
+              <td>{h}</td>
+              {dias.map((d) => renderCell(d, h, "Manhã"))}
+            </tr>
+          ))}
+        </tbody>
+      </Table>
 
-  <tbody>
-    {["A", "B", "C", "D","E","F"].map((horario) => (
-      <tr key={horario}>
-        <td>{horario}</td>
+      <h2 className="mt-4">Tarde</h2>
+      <Table striped bordered hover responsive className="text-center">
+        <tbody>
+          {["A", "B", "C", "D", "E", "F"].map((h) => (
+            <tr key={h}>
+              <td>{h}</td>
+              {dias.map((d) => renderCell(d, h, "Tarde"))}
+            </tr>
+          ))}
+        </tbody>
+      </Table>
 
-     {dias.map((dia) =>{
-      const materia = lista.find(
-  (m) => m.dia === dia && m.horario === horario && m.turno === "Tarde"
-        ) 
-        return <td key={dia}>{materia ? materia.nome : ""}</td>
-})}
-      </tr>
-    ))}
-  </tbody>
-</Table>
+      <h2 className="mt-4">Noite</h2>
+      <Table striped bordered hover responsive className="text-center">
+        <tbody>
+          {["A", "B", "C", "D"].map((h) => (
+            <tr key={h}>
+              <td>{h}</td>
+              {dias.map((d) => renderCell(d, h, "Noite"))}
+            </tr>
+          ))}
+        </tbody>
+      </Table>
 
-<h2 className="mt-4">Noite</h2>
-<Table striped bordered hover responsive className="mt-4 text-center">
-  <thead>
-    <tr>
-      <th>Horário / Dia</th>
-      <th>Segunda</th>
-      <th>Terça</th>
-      <th>Quarta</th>
-      <th>Quinta</th>
-      <th>Sexta</th>
-      <th>Sábado</th>
-    </tr>
-  </thead>
-
-  <tbody>
-    {["A", "B", "C", "D"].map((horario) => (
-      <tr key={horario}>
-        <td>{horario}</td>
-
-       {dias.map((dia) => {
-          const materia = lista.find(
-               (m) => m.dia === dia && m.horario === horario && m.turno === "Noite"
-          )              
-         return <td key={dia}>{materia ? materia.nome : ""}</td>
-})}
-      </tr>
-    ))}
-  </tbody>
-</Table>
-
-<p>Os horários da manhã se referem ao seguinte: ( A: 07:30 às 08:20, B: 08:20 às 09:10, C: 09:30 às 10:20, D: 10:20 às 11:10, E: 11:20 às 12:10, F: 12:10 às 13:00 ).</p>
-<p>Os horários da tarde se referem ao seguinte: ( A: 13:30 às 14:20, B: 14:20 às 15:10, C: 15:30 às 16:20, D: 16:20 às 17:10, E: 17:20 às 18:10, F: 18:10 às 19:00 ).</p>
-<p>Os horários da noite se referem ao seguinte: ( A: 19:00 às 19:50, B: 19:50 às 20:40, C: 21:00 às 21:50, D: 21:50 às 22:40 ).</p>
-
-      
-        <Button onClick={salvar} className="mt-4">Salvar</Button>
-     
+      <Button onClick={salvar} className="mt-4">
+        Confirmar Matrícula
+      </Button>
 
       <footer className="mt-4">
         <p>Fundação Edson Queiroz © 2026. Todos os direitos reservados.</p>
@@ -207,4 +234,5 @@ const aluno = {
     </>
   );
 }
+
 export default Matricula;
