@@ -1,17 +1,19 @@
-import { useState } from 'react'
-import { useNavigate } from "react-router-dom"
-import './inicio.css'
+import { useState } from 'react';
+import { useNavigate } from "react-router-dom";
+import './inicio.css';
 import logo from '../assets/novologin.png';
-import fundo from '../assets/fundo2.png'
+import fundo from '../assets/fundo2.png';
 import Form from 'react-bootstrap/Form';
 import Spinner from 'react-bootstrap/Spinner';
 import Button from "react-bootstrap/Button";
+import { login } from "../services/api";
 
 function Inicio() {
-    const [matricula, setMatricula] = useState('')
-    const [senha, setSenha] = useState('')
+    const [matricula, setMatricula] = useState('');
+    const [senha, setSenha] = useState('');
     const [carregando, setCarregando] = useState(false);
     const [erros, setErros] = useState({});
+
     const navigate = useNavigate();
 
     function validar() {
@@ -24,6 +26,7 @@ function Inicio() {
         } else if (matricula.length < 7) {
             novosErros.matricula = "Matrícula deve ter no mínimo 7 dígitos";
         }
+
         if (!senha) {
             novosErros.senha = "Senha é obrigatória";
         } else if (!/^\d+$/.test(senha)) {
@@ -31,41 +34,67 @@ function Inicio() {
         } else if (senha.length < 8) {
             novosErros.senha = "Senha deve ter no mínimo 8 dígitos";
         }
+
         setErros(novosErros);
         return Object.keys(novosErros).length === 0;
     }
 
-    function Ler(e){
+    async function Ler(e) {
         e.preventDefault();
+
         if (!validar()) return;
+
         setCarregando(true);
-        setTimeout(() => {
-            navigate("/dashboard")
-        }, 2000);
+        setErros({});
+
+        try {
+            const response = await login({
+                matricula,
+                senha
+            });
+
+            const { token, aluno } = response.data;
+
+            if (!token || !aluno) {
+                setErros({ geral: "Resposta inválida do servidor" });
+                return;
+            }
+
+            localStorage.setItem("token", token);
+            localStorage.setItem("aluno", JSON.stringify(aluno));
+
+            navigate("/dashboard", { replace: true });
+
+        } catch (erro) {
+            setErros({
+                geral: erro?.response?.data?.msg || "Erro ao fazer login"
+            });
+        } finally {
+            setCarregando(false);
+        }
     }
 
     return (
-    <>
-        <div className='fundo' style={{ backgroundImage : `url(${fundo})`}}>
+        <div className='fundo' style={{ backgroundImage: `url(${fundo})` }}>
             <div className='todo'>
-                <img src={logo} alt="" className='imagem'/>  
-                    <div className='titulos'>
-                        <h1>Acesso ao Unifor online</h1>
-                        <h2>Aqui você encontra os serviços digitais da Universidade de Fortaleza.</h2>
-                    </div>
+                <img src={logo} alt="" className='imagem' />
+
+                <div className='titulos'>
+                    <h1>Acesso ao Unifor online</h1>
+                    <h2>Aqui você encontra os serviços digitais da Universidade de Fortaleza.</h2>
+                </div>
+
                 <form onSubmit={Ler} className="container">
+
                     <Form.Group className="mb-3">
                         <Form.Label>Matrícula</Form.Label>
-                        <Form.Control 
+                        <Form.Control
                             type="text"
-                            placeholder="Digite sua matrícula aqui" 
                             value={matricula}
                             onChange={(e) => {
                                 const valor = e.target.value.replace(/\D/g, "");
                                 setMatricula(valor);
                             }}
-                            inputMode="numeric"
-                            pattern="[0-9]*"
                             className={erros.matricula ? "is-invalid" : ""}
                         />
                         {erros.matricula && (
@@ -77,16 +106,13 @@ function Inicio() {
 
                     <Form.Group className="mb-3">
                         <Form.Label>Senha</Form.Label>
-                        <Form.Control 
+                        <Form.Control
                             type="password"
-                            placeholder="Digite sua senha aqui" 
                             value={senha}
                             onChange={(e) => {
                                 const valor = e.target.value.replace(/\D/g, "");
                                 setSenha(valor);
                             }}
-                            inputMode="numeric"
-                            pattern="[0-9]*"
                             className={erros.senha ? "is-invalid" : ""}
                         />
                         {erros.senha && (
@@ -94,25 +120,35 @@ function Inicio() {
                                 {erros.senha}
                             </div>
                         )}
+
                         <p><a href="#">Esqueceu a senha?</a></p>
-                        <Button 
-                            type="submit" 
-                            disabled={carregando} 
-                            className="btn btn-primary w-100">
-                            {carregando 
-                                ? <Spinner animation="border" size="sm" /> 
+
+                        {erros.geral && (
+                            <div className="alert alert-danger">
+                                {erros.geral}
+                            </div>
+                        )}
+
+                        <Button
+                            type="submit"
+                            disabled={carregando}
+                            className="btn btn-primary w-100"
+                        >
+                            {carregando
+                                ? <Spinner animation="border" size="sm" />
                                 : "Acessar"
                             }
                         </Button>
+
                         <p>
                             <a href="https://unifor.br/">Voltar para o portal Unifor</a>
                         </p>
+
                     </Form.Group>
                 </form>
             </div>
         </div>
-    </>
-    )
+    );
 }
 
 export default Inicio;

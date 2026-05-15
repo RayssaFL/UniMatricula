@@ -11,3 +11,25 @@
 .item-disciplina:hover {
   background-color: #f8f9fa;
 }
+
+.tabela-matricula {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.tabela-matricula th,
+.tabela-matricula td {
+  width: 14.28%;
+  height: 85px;
+  vertical-align: middle;
+  text-align: center;
+  overflow: hidden;
+  word-wrap: break-word;
+}
+
+.celula-selecionada {
+  background-color: #198754 !important;
+  color: white !important;
+  font-weight: bold;
+  border: 2px solid #145c32 !important;
+}

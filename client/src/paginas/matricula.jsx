@@ -1,65 +1,204 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "../Componentes/Navbar";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
-import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import Table from "react-bootstrap/Table";
+import Accordion from "react-bootstrap/Accordion";
 import { useNavigate } from "react-router-dom";
-import './matricula.css'
+import {
+  getTurmas,
+  criarMatricula,
+  getMinhaMatricula,
+  verificarToken
+} from "../services/api";
+import "./matricula.css";
 
 function Matricula() {
-  const [busca, setBusca] = useState("");
-  const [lista, setLista] = useState([]);
-  const disciplina = (() => {
-  const salvas = localStorage.getItem("disciplinasMatriculadas")
-  if (salvas) {
-    return JSON.parse(salvas)
-  }
-  return []
-})()
- const alunoId = 1
-const navigate = useNavigate();
+  const [disciplinas, setDisciplinas] = useState([]);
+  const [selecionadas, setSelecionadas] = useState([]);
 
+  const navigate = useNavigate();
 
-  function adicionarMateria(item) {
-      const jaAdicionada = lista.find(
-      (m) => m.dia === item.dia && m.horario === item.horario && m.turno === item.turno && m.vagas === item.vagas
-    );
-    if (jaAdicionada) {
-      alert("Já existe uma matéria nesse horário e dia!");
-      return;
+  let aluno = null;
+
+  try {
+    const alunoStorage = localStorage.getItem("aluno");
+    if (alunoStorage && alunoStorage !== "undefined") {
+      aluno = JSON.parse(alunoStorage);
     }
-    setLista([...lista, item]);
+  } catch (err) {
+    console.log("Erro ao ler aluno:", err);
+    localStorage.removeItem("aluno");
   }
 
- 
+  useEffect(() => {
+    async function validar() {
+      try {
+        await verificarToken();
+      } catch {
+        localStorage.removeItem("token");
+        localStorage.removeItem("aluno");
+        navigate("/");
+      }
+    }
 
-function salvar() {
-  localStorage.setItem("disciplinasMatriculadas", JSON.stringify(lista));
-   fetch(`URL_API/matriculas/${alunoId}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        disciplinas: lista
-      })
-    })
-      .then((res) => res.json())
-      .then(() => {navigate("/dashboard")})
-      .catch((err) => console.log(err));
-  }
+    validar();
+  }, [navigate]);
 
+  useEffect(() => {
+    async function load() {
+      try {
+        const turmas = await getTurmas();
+        const matriculaAtual = await getMinhaMatricula();
 
-const aluno = {
-  nome : "Matheus",
-  sobrenome : "Silva",
-  curso : "Medicina"
-}
+        setDisciplinas(turmas);
+
+        if (matriculaAtual?.turmas) {
+          setSelecionadas(matriculaAtual.turmas);
+        }
+      } catch (err) {
+        console.log("Erro ao carregar dados:", err);
+      }
+    }
+
+    load();
+  }, []);
 
   const dias = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+
+  const horariosManha = ["A", "B", "C", "D", "E", "F"];
+  const horariosTarde = ["A", "B", "C", "D", "E", "F"];
+  const horariosNoite = ["A", "B", "C", "D"];
+
+  function getNomeDisciplina(turma) {
+    return turma?.disciplina?.nome || "Disciplina sem nome";
+  }
+
+  function getNomeProfessor(turma) {
+    return turma?.professor?.nome || "Professor não informado";
+  }
+
+  function getTipoDisciplina(turma) {
+    return turma?.disciplina?.tipo || "Tipo não informado";
+  }
+
+  function getVagasInfo(turma) {
+    const vagasTotais = turma?.vagasTotais || 0;
+    const vagasOcupadas = turma?.vagasOcupadas || 0;
+    const restantes = vagasTotais - vagasOcupadas;
+
+    return {
+      restantes,
+      texto: `Vagas: ${vagasOcupadas}/${vagasTotais} (Restam ${restantes})`,
+      cor: restantes > 0 ? "green" : "red",
+    };
+  }
+
+  function horarioContemCelula(horarioTurma, celula) {
+    return horarioTurma?.includes(celula);
+  }
+
+  function existeConflitoHorario(turmaNova) {
+    return selecionadas.find(
+      (turmaSelecionada) =>
+        turmaSelecionada._id !== turmaNova._id &&
+        turmaSelecionada.dia === turmaNova.dia &&
+        turmaSelecionada.turno === turmaNova.turno &&
+        [...turmaSelecionada.horario].some((letra) =>
+          turmaNova.horario.includes(letra)
+        )
+    );
+  }
+
+  function toggleMateria(turma) {
+    if (turma.vagasOcupadas >= turma.vagasTotais) return;
+
+    const jaSelecionada = selecionadas.find((m) => m._id === turma._id);
+
+    if (jaSelecionada) {
+      setSelecionadas(selecionadas.filter((m) => m._id !== turma._id));
+      return;
+    }
+
+    const nomeNova = getNomeDisciplina(turma);
+
+    const disciplinaRepetida = selecionadas.find(
+      (m) => getNomeDisciplina(m) === nomeNova
+    );
+
+    if (disciplinaRepetida) {
+      alert("Essa disciplina já foi selecionada em outra turma.");
+      return;
+    }
+
+    const conflitoHorario = existeConflitoHorario(turma);
+
+    if (conflitoHorario) {
+      alert("Já existe matéria nesse horário!");
+      return;
+    }
+
+    setSelecionadas([...selecionadas, turma]);
+  }
+
+  function getTurmaSelecionada(dia, celula, turno) {
+    return selecionadas.find(
+      (turma) =>
+        turma.dia === dia &&
+        turma.turno === turno &&
+        horarioContemCelula(turma.horario, celula)
+    );
+  }
+
+  function renderCell(dia, celula, turno) {
+    const turma = getTurmaSelecionada(dia, celula, turno);
+
+    return (
+      <td
+        key={`${dia}-${celula}-${turno}`}
+        className={turma ? "celula-selecionada" : ""}
+      >
+        {turma ? (
+          <>
+            <strong>{getNomeDisciplina(turma)}</strong>
+
+            <div style={{ fontSize: "10px" }}>
+              {turma.vagasTotais - turma.vagasOcupadas} vagas
+            </div>
+
+            <div style={{ fontSize: "12px" }}>✔ Selecionada</div>
+          </>
+        ) : (
+          ""
+        )}
+      </td>
+    );
+  }
+
+  async function salvar() {
+    try {
+      if (selecionadas.length === 0) {
+        alert("Selecione pelo menos uma disciplina");
+        return;
+      }
+
+      const ids = selecionadas.map((t) => t._id);
+
+      await criarMatricula(ids);
+
+      alert("Matrícula efetuada com sucesso");
+
+      navigate("/dashboard");
+    } catch (err) {
+      console.log(err);
+      alert(err?.response?.data?.msg || "Erro ao salvar matrícula");
+    }
+  }
+
+  if (!aluno) return null;
+
   return (
     <>
       <Navbar />
@@ -67,139 +206,149 @@ const aluno = {
       <h1>Matrícula</h1>
 
       <Container className="mt-4">
-       <Row className="g-3">
-       <Col md={6}>
-        <Form.Control 
-        type="text"
-        value={`${aluno.nome} ${aluno.sobrenome} - ${aluno.curso} `}
-        readOnly />
-        
-        </Col>
-       
-        <Col md={6}>
-        <Form.Control
-          type="text"
-          placeholder="Matérias a cursar"
-          value={busca}
-          onChange={(e) => {
-            setBusca(e.target.value);
-          }}
-        />
+        <Row className="g-3">
+          <Col md={12}>
+            <input
+              id="nomeAluno"
+              name="nomeAluno"
+              className="form-control"
+              value={aluno.nome || ""}
+              readOnly
+            />
+          </Col>
+        </Row>
 
-        {busca &&disciplina
-          .filter((disciplina) =>
-            disciplina.nome.toLowerCase().includes(busca.toLowerCase()),
-          )
-          .map((disciplina, index) => (
-           
-            <div
-             key={index}
-             onClick={() => adicionarMateria(disciplina)}
-             className="item-disciplina"
-              >
-               {disciplina.nome} [{disciplina.turno}-{disciplina.horario} ({disciplina.dia})({disciplina.vagas})]
+        <p className="mt-3">
+          Disciplinas selecionadas: <strong>{selecionadas.length}</strong>
+        </p>
 
-            </div>
-          ))}
-     </Col>
-     </Row>
-     </Container>
+        <Accordion className="mt-3">
+          <Accordion.Item eventKey="0">
+            <Accordion.Header>Selecionar Disciplina</Accordion.Header>
+
+            <Accordion.Body>
+              {disciplinas.length === 0 && <p>Nenhuma disciplina disponível</p>}
+
+              {disciplinas.map((turma) => {
+                const selecionada = selecionadas.some(
+                  (t) => t._id === turma._id
+                );
+
+                const vagas = getVagasInfo(turma);
+                const lotada = turma.vagasOcupadas >= turma.vagasTotais;
+
+                return (
+                  <div
+                    key={turma._id}
+                    onClick={() => toggleMateria(turma)}
+                    className="item-disciplina"
+                    style={{
+                      cursor: lotada ? "not-allowed" : "pointer",
+                      backgroundColor: selecionada ? "#198754" : "#fff",
+                      color: selecionada ? "#fff" : "#000",
+                      opacity: lotada ? 0.5 : 1,
+                    }}
+                  >
+                    <strong>{getNomeDisciplina(turma)}</strong> <br />
+
+                    <small>Tipo: {getTipoDisciplina(turma)}</small>
+                    <br />
+
+                    <small>Professor: {getNomeProfessor(turma)}</small>
+                    <br />
+
+                    <small>Sala: {turma.sala || "Sala não informada"}</small>
+                    <br />
+
+                    <small>
+                      {turma.dia} - {turma.horario} ({turma.turno})
+                    </small>
+                    <br />
+
+                    <small style={{ color: selecionada ? "#fff" : vagas.cor }}>
+                      {vagas.texto}
+                    </small>
+
+                    {lotada && (
+                      <div style={{ fontSize: "12px", color: "red" }}>
+                        Turma lotada
+                      </div>
+                    )}
+
+                    {selecionada && (
+                      <div style={{ fontSize: "12px" }}>✔ Selecionada</div>
+                    )}
+                  </div>
+                );
+              })}
+            </Accordion.Body>
+          </Accordion.Item>
+        </Accordion>
+      </Container>
+
       <h2 className="mt-4">Manhã</h2>
-        <Table striped bordered hover responsive className="mt-4 text-center">
-          <thead>
-            <tr>
-              <th>Horário/dia</th>
-             <th>Segunda</th>
-            <th>Terça</th>
-            <th>Quarta</th>
-            <th>Quinta</th>
-            <th>Sexta</th>
-            <th>Sábado</th>
-            </tr>
-          </thead>
-          <tbody>
-            {["A", "B", "C", "D", "E", "F"].map((horario) => (
-              <tr key={horario}>
-                <td>{horario}</td>
-            {dias.map((dia) => {
-                  const materia = lista.find(
-                    (m) => m.dia === dia && m.horario === horario && m.turno === "Manhã",
-                  );
-
-                  return <td key={dia}>{materia ? materia.nome : ""}</td>;
-                })}
-              </tr>
+      <Table striped bordered hover responsive className="text-center tabela-matricula">
+        <thead>
+          <tr>
+            <th>Horário</th>
+            {dias.map((d) => (
+              <th key={d}>{d}</th>
             ))}
-          </tbody>
-        </Table>
-     
-     <h2 className="mt-4">Tarde</h2>
-     <Table striped bordered hover responsive className="mt-4 text-center">
-  <thead>
-    <tr>
-      <th>Horário /dia</th>
-      <th>Segunda</th>
-      <th>Terça</th>
-      <th>Quarta</th>
-      <th>Quinta</th>
-      <th>Sexta</th>
-      <th>Sábado</th>
-    </tr>
-  </thead>
+          </tr>
+        </thead>
+        <tbody>
+          {horariosManha.map((h) => (
+            <tr key={h}>
+              <td>{h}</td>
+              {dias.map((d) => renderCell(d, h, "Manhã"))}
+            </tr>
+          ))}
+        </tbody>
+      </Table>
 
-  <tbody>
-    {["A", "B", "C", "D","E","F"].map((horario) => (
-      <tr key={horario}>
-        <td>{horario}</td>
+      <h2 className="mt-4">Tarde</h2>
+      <Table striped bordered hover responsive className="text-center tabela-matricula">
+        <thead>
+          <tr>
+            <th>Horário</th>
+            {dias.map((d) => (
+              <th key={d}>{d}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {horariosTarde.map((h) => (
+            <tr key={h}>
+              <td>{h}</td>
+              {dias.map((d) => renderCell(d, h, "Tarde"))}
+            </tr>
+          ))}
+        </tbody>
+      </Table>
 
-     {dias.map((dia) =>{
-      const materia = lista.find(
-  (m) => m.dia === dia && m.horario === horario && m.turno === "Tarde"
-        ) 
-        return <td key={dia}>{materia ? materia.nome : ""}</td>
-})}
-      </tr>
-    ))}
-  </tbody>
-</Table>
+      <h2 className="mt-4">Noite</h2>
+      <Table striped bordered hover responsive className="text-center tabela-matricula">
+        <thead>
+          <tr>
+            <th>Horário</th>
+            {dias.map((d) => (
+              <th key={d}>{d}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {horariosNoite.map((h) => (
+            <tr key={h}>
+              <td>{h}</td>
+              {dias.map((d) => renderCell(d, h, "Noite"))}
+            </tr>
+          ))}
+        </tbody>
+      </Table>
 
-<h2 className="mt-4">Noite</h2>
-<Table striped bordered hover responsive className="mt-4 text-center">
-  <thead>
-    <tr>
-      <th>Horário / Dia</th>
-      <th>Segunda</th>
-      <th>Terça</th>
-      <th>Quarta</th>
-      <th>Quinta</th>
-      <th>Sexta</th>
-      <th>Sábado</th>
-    </tr>
-  </thead>
-
-  <tbody>
-    {["A", "B", "C", "D"].map((horario) => (
-      <tr key={horario}>
-        <td>{horario}</td>
-
-       {dias.map((dia) => {
-          const materia = lista.find(
-               (m) => m.dia === dia && m.horario === horario && m.turno === "Noite"
-          )              
-         return <td key={dia}>{materia ? materia.nome : ""}</td>
-})}
-      </tr>
-    ))}
-  </tbody>
-</Table>
-
-<p>Os horários da manhã se referem ao seguinte: ( A: 07:30 às 08:20, B: 08:20 às 09:10, C: 09:30 às 10:20, D: 10:20 às 11:10, E: 11:20 às 12:10, F: 12:10 às 13:00 ).</p>
-<p>Os horários da tarde se referem ao seguinte: ( A: 13:30 às 14:20, B: 14:20 às 15:10, C: 15:30 às 16:20, D: 16:20 às 17:10, E: 17:20 às 18:10, F: 18:10 às 19:00 ).</p>
-<p>Os horários da noite se referem ao seguinte: ( A: 19:00 às 19:50, B: 19:50 às 20:40, C: 21:00 às 21:50, D: 21:50 às 22:40 ).</p>
-
-      
-        <Button onClick={salvar} className="mt-4">Salvar</Button>
-     
+      <Button onClick={salvar} className="mt-4">
+        Confirmar Matrícula
+      </Button>
 
       <footer className="mt-4">
         <p>Fundação Edson Queiroz © 2026. Todos os direitos reservados.</p>
@@ -207,4 +356,5 @@ const aluno = {
     </>
   );
 }
+
 export default Matricula;
