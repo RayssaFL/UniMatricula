@@ -1,12 +1,13 @@
 import Matricula from "../models/Matricula.js";
 import Turma from "../models/Turma.js";
+import Aluno from "../models/Aluno.js";
 
 export const criarMatricula = async (req, res) => {
   try {
-    const aluno = req.user.id;
+    const alunoId = req.user.id;
     const { turmas } = req.body;
 
-    if (!aluno) {
+    if (!alunoId) {
       return res.status(401).json({
         ok: false,
         msg: "Aluno não identificado pelo token"
@@ -20,20 +21,27 @@ export const criarMatricula = async (req, res) => {
       });
     }
 
-    const matriculaAntiga = await Matricula.findOne({ aluno });
+    const aluno = await Aluno.findById(alunoId);
 
-    if (matriculaAntiga) {
-      for (const turmaId of matriculaAntiga.turmas) {
-        await Turma.findByIdAndUpdate(turmaId, {
-          $inc: { vagasOcupadas: -1 }
-        });
-      }
-
-      await Matricula.deleteOne({ aluno });
+    if (!aluno) {
+      return res.status(404).json({
+        ok: false,
+        msg: "Aluno não encontrado"
+      });
     }
 
+    const disciplinasConcluidas = aluno.disciplinasConcluidas.map((id) =>
+      String(id)
+    );
+
     for (const turmaId of turmas) {
-      const turma = await Turma.findById(turmaId).populate("disciplina");
+      const turma = await Turma.findById(turmaId).populate({
+        path: "disciplina",
+        populate: {
+          path: "preRequisitos",
+          select: "nome"
+        }
+      });
 
       if (!turma) {
         return res.status(404).json({
@@ -42,12 +50,54 @@ export const criarMatricula = async (req, res) => {
         });
       }
 
+      if (!turma.disciplina) {
+        return res.status(404).json({
+          ok: false,
+          msg: "Disciplina da turma não encontrada"
+        });
+      }
+
+      if (String(turma.disciplina.curso) !== String(aluno.curso)) {
+        return res.status(403).json({
+          ok: false,
+          msg: `A disciplina ${turma.disciplina.nome} não pertence ao seu curso`
+        });
+      }
+
+      if (turma.disciplina.semestre !== aluno.semestreAtual) {
+        return res.status(403).json({
+          ok: false,
+          msg: `A disciplina ${turma.disciplina.nome} não pertence ao seu semestre atual`
+        });
+      }
+
+      for (const preReq of turma.disciplina.preRequisitos) {
+        if (!disciplinasConcluidas.includes(String(preReq._id))) {
+          return res.status(400).json({
+            ok: false,
+            msg: `Você não possui o pré-requisito ${preReq.nome} para cursar ${turma.disciplina.nome}`
+          });
+        }
+      }
+
       if (turma.vagasOcupadas >= turma.vagasTotais) {
         return res.status(400).json({
           ok: false,
-          msg: `Turma de ${turma.disciplina?.nome || "disciplina"} está lotada`
+          msg: `Turma de ${turma.disciplina.nome} está lotada`
         });
       }
+    }
+
+    const matriculaAntiga = await Matricula.findOne({ aluno: alunoId });
+
+    if (matriculaAntiga) {
+      for (const turmaId of matriculaAntiga.turmas) {
+        await Turma.findByIdAndUpdate(turmaId, {
+          $inc: { vagasOcupadas: -1 }
+        });
+      }
+
+      await Matricula.deleteOne({ aluno: alunoId });
     }
 
     for (const turmaId of turmas) {
@@ -57,7 +107,7 @@ export const criarMatricula = async (req, res) => {
     }
 
     const novaMatricula = await Matricula.create({
-      aluno,
+      aluno: alunoId,
       turmas
     });
 
@@ -86,7 +136,12 @@ export const listarMatriculas = async (req, res) => {
       populate: [
         {
           path: "disciplina",
-          select: "nome tipo quantidadeCreditos cargaHoraria curso"
+          select:
+            "nome tipo quantidadeCreditos cargaHoraria curso semestre preRequisitos",
+          populate: {
+            path: "preRequisitos",
+            select: "nome"
+          }
         },
         {
           path: "professor",

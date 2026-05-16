@@ -1,23 +1,57 @@
 import mongoose from "mongoose";
 
 const AlunoSchema = new mongoose.Schema({
-  nome: { type: String, required: true },
-  matricula: { type: String, required: true, unique: true },
-  senha: { type: String, required: true },
-  cpf: { type: String, unique: true },
+  nome: {
+    type: String,
+    required: true
+  },
+
+  matricula: {
+    type: String,
+    required: true,
+    unique: true
+  },
+
+  senha: {
+    type: String,
+    required: true
+  },
+
+  cpf: {
+    type: String,
+    unique: true
+  },
+
   email: String,
+
   telefone: String,
+
   dataNascimento: Date,
+
   statusFinanceiro: {
     type: String,
     enum: ["Pendente", "Ok"],
     default: "Pendente"
   },
+
   curso: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Curso"
+    ref: "Curso",
+    required: true
   },
-  semestreAtual: Number,
+
+  semestreAtual: {
+    type: Number,
+    required: true
+  },
+
+  disciplinasConcluidas: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Disciplina"
+    }
+  ],
+
   status: {
     type: String,
     default: "Ativo"

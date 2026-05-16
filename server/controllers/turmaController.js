@@ -1,16 +1,17 @@
 import Turma from "../models/Turma.js";
-import Disciplina from "../models/Disciplina.js";
+import Aluno from "../models/Aluno.js";
 import Professor from "../models/Professor.js";
 
 export const criarTurma = async (req, res) => {
   try {
     const turma = await Turma.create(req.body);
-    res.status(201).json({
+
+    return res.status(201).json({
       ok: true,
       data: turma
     });
   } catch (err) {
-    res.status(500).json({
+    return res.status(500).json({
       ok: false,
       erro: err.message
     });
@@ -19,16 +20,47 @@ export const criarTurma = async (req, res) => {
 
 export const listarTurmas = async (req, res) => {
   try {
+    const alunoId = req.user.id;
+
+    const aluno = await Aluno.findById(alunoId);
+
+    if (!aluno) {
+      return res.status(404).json({
+        ok: false,
+        msg: "Aluno não encontrado"
+      });
+    }
+
     const turmas = await Turma.find()
-      .populate("disciplina", "nome quantidadeCreditos cargaHoraria tipo curso")
+      .populate({
+        path: "disciplina",
+        match: {
+          curso: aluno.curso,
+          semestre: aluno.semestreAtual
+        },
+        select:
+          "nome quantidadeCreditos cargaHoraria tipo curso semestre preRequisitos",
+        populate: {
+          path: "preRequisitos",
+          select: "nome"
+        }
+      })
       .populate("professor", "nome titulacao departamento email");
-    res.json({
+
+    const turmasFiltradas = turmas.filter(
+      (turma) => turma.disciplina !== null
+    );
+
+    return res.json({
       ok: true,
-      data: turmas
+      data: turmasFiltradas
     });
   } catch (err) {
-    res.status(500).json({
+    console.log("ERRO AO LISTAR TURMAS:", err);
+
+    return res.status(500).json({
       ok: false,
+      msg: "Erro ao listar turmas",
       erro: err.message
     });
   }

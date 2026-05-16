@@ -21,8 +21,12 @@ function Matricula() {
   const [disciplinas, setDisciplinas] = useState([]);
   const [selecionadas, setSelecionadas] = useState([]);
   const [temMatricula, setTemMatricula] = useState(false);
+  const [busca, setBusca] = useState("");
+
   const navigate = useNavigate();
+
   let aluno = null;
+
   try {
     const alunoStorage = localStorage.getItem("aluno");
 
@@ -100,6 +104,21 @@ function Matricula() {
       cor: restantes > 0 ? "green" : "red"
     };
   }
+
+  const disciplinasFiltradas = disciplinas.filter((turma) => {
+    const texto = busca.toLowerCase();
+
+    return (
+      getNomeDisciplina(turma).toLowerCase().includes(texto) ||
+      getNomeProfessor(turma).toLowerCase().includes(texto) ||
+      getTipoDisciplina(turma).toLowerCase().includes(texto) ||
+      turma.dia?.toLowerCase().includes(texto) ||
+      turma.turno?.toLowerCase().includes(texto) ||
+      turma.sala?.toLowerCase().includes(texto) ||
+      turma.horario?.toLowerCase().includes(texto) ||
+      String(turma.disciplina?.semestre || "").includes(texto)
+    );
+  });
 
   function horarioContemCelula(horarioTurma, celula) {
     return horarioTurma?.includes(celula);
@@ -202,7 +221,7 @@ function Matricula() {
       setTemMatricula(true);
       navigate("/dashboard");
     } catch (err) {
-      console.log(err);
+      console.log("ERRO COMPLETO:", err.response?.data);
       alert(err?.response?.data?.msg || "Erro ao salvar matrícula");
     }
   }
@@ -257,9 +276,19 @@ function Matricula() {
             <Accordion.Header>Selecionar Disciplina</Accordion.Header>
 
             <Accordion.Body>
-              {disciplinas.length === 0 && <p>Nenhuma disciplina disponível</p>}
+              <input
+                type="text"
+                className="form-control mb-3"
+                placeholder="Pesquisar por disciplina, professor, tipo, dia, turno, sala, horário ou semestre..."
+                value={busca}
+                onChange={(e) => setBusca(e.target.value)}
+              />
 
-              {disciplinas.map((turma) => {
+              {disciplinasFiltradas.length === 0 && (
+                <p>Nenhuma disciplina encontrada</p>
+              )}
+
+              {disciplinasFiltradas.map((turma) => {
                 const selecionada = selecionadas.some(
                   (t) => t._id === turma._id
                 );
@@ -279,10 +308,30 @@ function Matricula() {
                       opacity: lotada ? 0.5 : 1
                     }}
                   >
-                    <strong>{getNomeDisciplina(turma)}</strong> <br />
+                    <strong>{getNomeDisciplina(turma)}</strong>
+                    <br />
 
                     <small>Tipo: {getTipoDisciplina(turma)}</small>
                     <br />
+
+                    {turma.disciplina?.semestre && (
+                      <>
+                        <small>Semestre: {turma.disciplina.semestre}º</small>
+                        <br />
+                      </>
+                    )}
+
+                    {turma.disciplina?.preRequisitos?.length > 0 && (
+                      <>
+                        <small>
+                          Pré-requisitos:{" "}
+                          {turma.disciplina.preRequisitos
+                            .map((pre) => pre.nome)
+                            .join(", ")}
+                        </small>
+                        <br />
+                      </>
+                    )}
 
                     <small>Professor: {getNomeProfessor(turma)}</small>
                     <br />
