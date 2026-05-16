@@ -1,7 +1,8 @@
 import express from "express";
+
 import {
-    criarTurma,
-    listarTurmas
+  criarTurma,
+  listarTurmas
 } from "../controllers/turmaController.js";
 
 import { authMiddleware } from "../middlewares/authMiddleware.js";
