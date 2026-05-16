@@ -10,6 +10,8 @@ import { useNavigate } from "react-router-dom";
 import {
   getTurmas,
   criarMatricula,
+  atualizarMatricula,
+  cancelarMatricula,
   getMinhaMatricula,
   verificarToken
 } from "../services/api";
@@ -18,13 +20,12 @@ import "./matricula.css";
 function Matricula() {
   const [disciplinas, setDisciplinas] = useState([]);
   const [selecionadas, setSelecionadas] = useState([]);
-
+  const [temMatricula, setTemMatricula] = useState(false);
   const navigate = useNavigate();
-
   let aluno = null;
-
   try {
     const alunoStorage = localStorage.getItem("aluno");
+
     if (alunoStorage && alunoStorage !== "undefined") {
       aluno = JSON.parse(alunoStorage);
     }
@@ -55,8 +56,12 @@ function Matricula() {
 
         setDisciplinas(turmas);
 
-        if (matriculaAtual?.turmas) {
+        if (matriculaAtual?.turmas && matriculaAtual.turmas.length > 0) {
           setSelecionadas(matriculaAtual.turmas);
+          setTemMatricula(true);
+        } else {
+          setSelecionadas([]);
+          setTemMatricula(false);
         }
       } catch (err) {
         console.log("Erro ao carregar dados:", err);
@@ -92,7 +97,7 @@ function Matricula() {
     return {
       restantes,
       texto: `Vagas: ${vagasOcupadas}/${vagasTotais} (Restam ${restantes})`,
-      cor: restantes > 0 ? "green" : "red",
+      cor: restantes > 0 ? "green" : "red"
     };
   }
 
@@ -186,14 +191,39 @@ function Matricula() {
 
       const ids = selecionadas.map((t) => t._id);
 
-      await criarMatricula(ids);
+      if (temMatricula) {
+        await atualizarMatricula(ids);
+        alert("Matrícula atualizada com sucesso");
+      } else {
+        await criarMatricula(ids);
+        alert("Matrícula efetuada com sucesso");
+      }
 
-      alert("Matrícula efetuada com sucesso");
-
+      setTemMatricula(true);
       navigate("/dashboard");
     } catch (err) {
       console.log(err);
       alert(err?.response?.data?.msg || "Erro ao salvar matrícula");
+    }
+  }
+
+  async function handleCancelarMatricula() {
+    const confirmar = window.confirm(
+      "Tem certeza que deseja cancelar sua matrícula?"
+    );
+
+    if (!confirmar) return;
+
+    try {
+      await cancelarMatricula();
+
+      alert("Matrícula cancelada com sucesso");
+
+      setSelecionadas([]);
+      setTemMatricula(false);
+    } catch (err) {
+      console.log(err);
+      alert(err?.response?.data?.msg || "Erro ao cancelar matrícula");
     }
   }
 
@@ -246,7 +276,7 @@ function Matricula() {
                       cursor: lotada ? "not-allowed" : "pointer",
                       backgroundColor: selecionada ? "#198754" : "#fff",
                       color: selecionada ? "#fff" : "#000",
-                      opacity: lotada ? 0.5 : 1,
+                      opacity: lotada ? 0.5 : 1
                     }}
                   >
                     <strong>{getNomeDisciplina(turma)}</strong> <br />
@@ -287,7 +317,14 @@ function Matricula() {
       </Container>
 
       <h2 className="mt-4">Manhã</h2>
-      <Table striped bordered hover responsive className="text-center tabela-matricula">
+
+      <Table
+        striped
+        bordered
+        hover
+        responsive
+        className="text-center tabela-matricula"
+      >
         <thead>
           <tr>
             <th>Horário</th>
@@ -296,6 +333,7 @@ function Matricula() {
             ))}
           </tr>
         </thead>
+
         <tbody>
           {horariosManha.map((h) => (
             <tr key={h}>
@@ -307,7 +345,14 @@ function Matricula() {
       </Table>
 
       <h2 className="mt-4">Tarde</h2>
-      <Table striped bordered hover responsive className="text-center tabela-matricula">
+
+      <Table
+        striped
+        bordered
+        hover
+        responsive
+        className="text-center tabela-matricula"
+      >
         <thead>
           <tr>
             <th>Horário</th>
@@ -316,6 +361,7 @@ function Matricula() {
             ))}
           </tr>
         </thead>
+
         <tbody>
           {horariosTarde.map((h) => (
             <tr key={h}>
@@ -327,7 +373,14 @@ function Matricula() {
       </Table>
 
       <h2 className="mt-4">Noite</h2>
-      <Table striped bordered hover responsive className="text-center tabela-matricula">
+
+      <Table
+        striped
+        bordered
+        hover
+        responsive
+        className="text-center tabela-matricula"
+      >
         <thead>
           <tr>
             <th>Horário</th>
@@ -336,6 +389,7 @@ function Matricula() {
             ))}
           </tr>
         </thead>
+
         <tbody>
           {horariosNoite.map((h) => (
             <tr key={h}>
@@ -346,9 +400,17 @@ function Matricula() {
         </tbody>
       </Table>
 
-      <Button onClick={salvar} className="mt-4">
-        Confirmar Matrícula
-      </Button>
+      <div className="mt-4 d-flex gap-2 justify-content-center">
+        <Button onClick={salvar} variant="primary">
+          {temMatricula ? "Atualizar Matrícula" : "Confirmar Matrícula"}
+        </Button>
+
+        {temMatricula && (
+          <Button onClick={handleCancelarMatricula} variant="danger">
+            Cancelar Matrícula
+          </Button>
+        )}
+      </div>
 
       <footer className="mt-4">
         <p>Fundação Edson Queiroz © 2026. Todos os direitos reservados.</p>

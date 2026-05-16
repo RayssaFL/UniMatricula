@@ -30,6 +30,16 @@ export const criarMatricula = async (turmas) => {
   return res.data;
 };
 
+export const atualizarMatricula = async (turmas) => {
+  const res = await api.put("/matriculas", { turmas });
+  return res.data;
+};
+
+export const cancelarMatricula = async () => {
+  const res = await api.delete("/matriculas");
+  return res.data;
+};
+
 export const getMinhaMatricula = async () => {
   const res = await api.get("/matriculas");
   return res.data.data;
