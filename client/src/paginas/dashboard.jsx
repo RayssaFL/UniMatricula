@@ -45,8 +45,6 @@ function Dashboard() {
     async function carregarMatricula() {
       try {
         const matricula = await getMinhaMatricula();
-         console.log("Retorno da API:", matricula)
-        console.log("Turmas:", matricula?.turmas)
         if (matricula?.turmas) {
           const nomes = matricula.turmas.map(
             (turma) => ({
@@ -57,7 +55,6 @@ function Dashboard() {
              horario: turma.horario || "Não informado",
              turno : turma.turno || "Não informado"
         }));
- console.log("Turmas mapeadas:", nomes)
           setDisciplinasAluno(nomes);
         } else {
           setDisciplinasAluno([]);
@@ -193,7 +190,7 @@ function Dashboard() {
         </Row>
       </Container>
        <br/>
-      <footer className="mt-4">
+      <footer >
         <p className="rodape">Fundação Edson Queiroz © 2026. Todos os direitos reservados.</p>
       </footer>
     </>

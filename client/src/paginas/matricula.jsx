@@ -21,6 +21,7 @@ function Matricula() {
   const [disciplinas, setDisciplinas] = useState([]);
   const [selecionadas, setSelecionadas] = useState([]);
   const [temMatricula, setTemMatricula] = useState(false);
+  const [busca, setBusca] = useState("");
   const [modalAberto, setModalAberto] = useState(false);
   const [celulaSelecionada, setCelulaSelecionada] = useState(null);
 
@@ -124,35 +125,26 @@ function Matricula() {
 
   function toggleMateria(turma) {
     if (turma.vagasOcupadas >= turma.vagasTotais) return;
-
     const jaSelecionada = selecionadas.find((m) => m._id === turma._id);
-
     if (jaSelecionada) {
       setSelecionadas(selecionadas.filter((m) => m._id !== turma._id));
       return;
     }
-
     const nomeNova = getNomeDisciplina(turma);
-
     const disciplinaRepetida = selecionadas.find(
       (m) => getNomeDisciplina(m) === nomeNova
     );
-
     if (disciplinaRepetida) {
       alert("Essa disciplina já foi selecionada em outra turma.");
       return;
     }
-
     const conflitoHorario = existeConflitoHorario(turma);
-
     if (conflitoHorario) {
       alert("Já existe matéria nesse horário!");
       return;
     }
-
     setSelecionadas([...selecionadas, turma]);
   }
-
   function getTurmaSelecionada(dia, celula, turno) {
     return selecionadas.find(
       (turma) =>
@@ -161,51 +153,51 @@ function Matricula() {
         horarioContemCelula(turma.horario, celula)
     );
   }
-
   function abrirModalCelula(dia, celula, turno) {
+    setBusca("");
     setCelulaSelecionada({ dia, celula, turno });
     setModalAberto(true);
   }
-
   function fecharModal() {
     setModalAberto(false);
     setCelulaSelecionada(null);
+    setBusca("");
   }
-
   function getTurmasDaCelula() {
     if (!celulaSelecionada) return [];
-
-    return disciplinas.filter(
-      (turma) =>
+    const texto = busca.toLowerCase();
+    return disciplinas.filter((turma) => {
+      const pertenceAoHorario =
         turma.dia === celulaSelecionada.dia &&
         turma.turno === celulaSelecionada.turno &&
-        horarioContemCelula(turma.horario, celulaSelecionada.celula)
-    );
+        horarioContemCelula(turma.horario, celulaSelecionada.celula);
+      const passaNoFiltro =
+        getNomeDisciplina(turma).toLowerCase().includes(texto) ||
+        getNomeProfessor(turma).toLowerCase().includes(texto) ||
+        getTipoDisciplina(turma).toLowerCase().includes(texto) ||
+        turma.sala?.toLowerCase().includes(texto) ||
+        String(turma.disciplina?.semestre || "").includes(texto);
+      return pertenceAoHorario && passaNoFiltro;
+    });
   }
-
   function selecionarTurmaDaCelula(turma) {
     toggleMateria(turma);
     fecharModal();
   }
-
   function renderCell(dia, celula, turno) {
     const turma = getTurmaSelecionada(dia, celula, turno);
-
     return (
       <td
         key={`${dia}-${celula}-${turno}`}
         onClick={() => abrirModalCelula(dia, celula, turno)}
-        className={turma ? "celula-selecionada celula-click" : "celula-click"}
-      >
+        className={turma ? "celula-selecionada celula-click" : "celula-click"}>
         {turma ? (
           <>
             <strong>{getNomeDisciplina(turma)}</strong>
-
             <div style={{ fontSize: "10px" }}>
               {turma.vagasTotais - turma.vagasOcupadas} vagas
             </div>
-
-            <div style={{ fontSize: "12px" }}>✔ Selecionada</div>
+            <div style={{ fontSize: "12px" }}> Selecionada</div>
           </>
         ) : (
           <span className="celula-vazia">Clique para selecionar</span>
@@ -213,16 +205,13 @@ function Matricula() {
       </td>
     );
   }
-
   async function salvar() {
     try {
       if (selecionadas.length === 0) {
         alert("Selecione pelo menos uma disciplina");
         return;
       }
-
       const ids = selecionadas.map((t) => t._id);
-
       if (temMatricula) {
         await atualizarMatricula(ids);
         alert("Matrícula atualizada com sucesso");
@@ -230,7 +219,6 @@ function Matricula() {
         await criarMatricula(ids);
         alert("Matrícula efetuada com sucesso");
       }
-
       setTemMatricula(true);
       navigate("/dashboard");
     } catch (err) {
@@ -238,19 +226,14 @@ function Matricula() {
       alert(err?.response?.data?.msg || "Erro ao salvar matrícula");
     }
   }
-
   async function handleCancelarMatricula() {
     const confirmar = window.confirm(
       "Tem certeza que deseja cancelar sua matrícula?"
     );
-
     if (!confirmar) return;
-
     try {
       await cancelarMatricula();
-
       alert("Matrícula cancelada com sucesso");
-
       setSelecionadas([]);
       setTemMatricula(false);
     } catch (err) {
@@ -258,15 +241,11 @@ function Matricula() {
       alert(err?.response?.data?.msg || "Erro ao cancelar matrícula");
     }
   }
-
   if (!aluno) return null;
-
   return (
     <>
       <Navbar />
-
       <h1>Matrícula</h1>
-
       <Container className="mt-4">
         <Row className="g-3">
           <Col md={12}>
@@ -279,14 +258,11 @@ function Matricula() {
             />
           </Col>
         </Row>
-
         <p className="mt-3">
           Disciplinas selecionadas: <strong>{selecionadas.length}</strong>
         </p>
       </Container>
-
       <h2 className="mt-4">Manhã</h2>
-
       <Table striped bordered hover responsive className="text-center tabela-matricula">
         <thead>
           <tr>
@@ -296,7 +272,6 @@ function Matricula() {
             ))}
           </tr>
         </thead>
-
         <tbody>
           {horariosManha.map((h) => (
             <tr key={h}>
@@ -306,9 +281,7 @@ function Matricula() {
           ))}
         </tbody>
       </Table>
-
       <h2 className="mt-4">Tarde</h2>
-
       <Table striped bordered hover responsive className="text-center tabela-matricula">
         <thead>
           <tr>
@@ -318,7 +291,6 @@ function Matricula() {
             ))}
           </tr>
         </thead>
-
         <tbody>
           {horariosTarde.map((h) => (
             <tr key={h}>
@@ -328,9 +300,7 @@ function Matricula() {
           ))}
         </tbody>
       </Table>
-
       <h2 className="mt-4">Noite</h2>
-
       <Table striped bordered hover responsive className="text-center tabela-matricula">
         <thead>
           <tr>
@@ -340,7 +310,6 @@ function Matricula() {
             ))}
           </tr>
         </thead>
-
         <tbody>
           {horariosNoite.map((h) => (
             <tr key={h}>
@@ -350,12 +319,10 @@ function Matricula() {
           ))}
         </tbody>
       </Table>
-
       <Modal show={modalAberto} onHide={fecharModal} centered>
         <Modal.Header closeButton>
           <Modal.Title>Disciplinas disponíveis</Modal.Title>
         </Modal.Header>
-
         <Modal.Body>
           {celulaSelecionada && (
             <p>
@@ -364,7 +331,13 @@ function Matricula() {
               {celulaSelecionada.turno})
             </p>
           )}
-
+          <input
+            type="text"
+            className="form-control mb-3"
+            placeholder="Pesquisar disciplina, professor, tipo, sala ou semestre..."
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+          />
           {getTurmasDaCelula().length === 0 ? (
             <p>Nenhuma disciplina disponível neste horário.</p>
           ) : (
@@ -372,7 +345,6 @@ function Matricula() {
               const selecionada = selecionadas.some((t) => t._id === turma._id);
               const vagas = getVagasInfo(turma);
               const lotada = turma.vagasOcupadas >= turma.vagasTotais;
-
               return (
                 <div
                   key={turma._id}
@@ -383,21 +355,17 @@ function Matricula() {
                     backgroundColor: selecionada ? "#198754" : "#fff",
                     color: selecionada ? "#fff" : "#000",
                     opacity: lotada ? 0.5 : 1
-                  }}
-                >
+                  }}>
                   <strong>{getNomeDisciplina(turma)}</strong>
                   <br />
-
                   <small>Tipo: {getTipoDisciplina(turma)}</small>
                   <br />
-
                   {turma.disciplina?.semestre && (
                     <>
                       <small>Semestre: {turma.disciplina.semestre}º</small>
                       <br />
                     </>
                   )}
-
                   {turma.disciplina?.preRequisitos?.length > 0 && (
                     <>
                       <small>
@@ -409,31 +377,25 @@ function Matricula() {
                       <br />
                     </>
                   )}
-
                   <small>Professor: {getNomeProfessor(turma)}</small>
                   <br />
-
                   <small>Sala: {turma.sala || "Sala não informada"}</small>
                   <br />
-
                   <small>
                     {turma.dia} - {turma.horario} ({turma.turno})
                   </small>
                   <br />
-
                   <small style={{ color: selecionada ? "#fff" : vagas.cor }}>
                     {vagas.texto}
                   </small>
-
                   {lotada && (
                     <div style={{ fontSize: "12px", color: "red" }}>
                       Turma lotada
                     </div>
                   )}
-
                   {selecionada && (
                     <div style={{ fontSize: "12px" }}>
-                      ✔ Selecionada — clique para remover
+                      Selecionada — clique para remover
                     </div>
                   )}
                 </div>
