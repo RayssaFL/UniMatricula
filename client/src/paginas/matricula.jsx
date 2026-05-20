@@ -5,7 +5,7 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Button from "react-bootstrap/Button";
 import Table from "react-bootstrap/Table";
-import Accordion from "react-bootstrap/Accordion";
+import Modal from "react-bootstrap/Modal";
 import { useNavigate } from "react-router-dom";
 import {
   getTurmas,
@@ -21,7 +21,8 @@ function Matricula() {
   const [disciplinas, setDisciplinas] = useState([]);
   const [selecionadas, setSelecionadas] = useState([]);
   const [temMatricula, setTemMatricula] = useState(false);
-  const [busca, setBusca] = useState("");
+  const [modalAberto, setModalAberto] = useState(false);
+  const [celulaSelecionada, setCelulaSelecionada] = useState(null);
 
   const navigate = useNavigate();
 
@@ -105,21 +106,6 @@ function Matricula() {
     };
   }
 
-  const disciplinasFiltradas = disciplinas.filter((turma) => {
-    const texto = busca.toLowerCase();
-
-    return (
-      getNomeDisciplina(turma).toLowerCase().includes(texto) ||
-      getNomeProfessor(turma).toLowerCase().includes(texto) ||
-      getTipoDisciplina(turma).toLowerCase().includes(texto) ||
-      turma.dia?.toLowerCase().includes(texto) ||
-      turma.turno?.toLowerCase().includes(texto) ||
-      turma.sala?.toLowerCase().includes(texto) ||
-      turma.horario?.toLowerCase().includes(texto) ||
-      String(turma.disciplina?.semestre || "").includes(texto)
-    );
-  });
-
   function horarioContemCelula(horarioTurma, celula) {
     return horarioTurma?.includes(celula);
   }
@@ -176,13 +162,40 @@ function Matricula() {
     );
   }
 
+  function abrirModalCelula(dia, celula, turno) {
+    setCelulaSelecionada({ dia, celula, turno });
+    setModalAberto(true);
+  }
+
+  function fecharModal() {
+    setModalAberto(false);
+    setCelulaSelecionada(null);
+  }
+
+  function getTurmasDaCelula() {
+    if (!celulaSelecionada) return [];
+
+    return disciplinas.filter(
+      (turma) =>
+        turma.dia === celulaSelecionada.dia &&
+        turma.turno === celulaSelecionada.turno &&
+        horarioContemCelula(turma.horario, celulaSelecionada.celula)
+    );
+  }
+
+  function selecionarTurmaDaCelula(turma) {
+    toggleMateria(turma);
+    fecharModal();
+  }
+
   function renderCell(dia, celula, turno) {
     const turma = getTurmaSelecionada(dia, celula, turno);
 
     return (
       <td
         key={`${dia}-${celula}-${turno}`}
-        className={turma ? "celula-selecionada" : ""}
+        onClick={() => abrirModalCelula(dia, celula, turno)}
+        className={turma ? "celula-selecionada celula-click" : "celula-click"}
       >
         {turma ? (
           <>
@@ -195,7 +208,7 @@ function Matricula() {
             <div style={{ fontSize: "12px" }}>✔ Selecionada</div>
           </>
         ) : (
-          ""
+          <span className="celula-vazia">Clique para selecionar</span>
         )}
       </td>
     );
@@ -270,110 +283,11 @@ function Matricula() {
         <p className="mt-3">
           Disciplinas selecionadas: <strong>{selecionadas.length}</strong>
         </p>
-
-        <Accordion className="mt-3">
-          <Accordion.Item eventKey="0">
-            <Accordion.Header>Selecionar Disciplina</Accordion.Header>
-
-            <Accordion.Body>
-              <input
-                type="text"
-                className="form-control mb-3"
-                placeholder="Pesquisar por disciplina, professor, tipo, dia, turno, sala, horário ou semestre..."
-                value={busca}
-                onChange={(e) => setBusca(e.target.value)}
-              />
-
-              {disciplinasFiltradas.length === 0 && (
-                <p>Nenhuma disciplina encontrada</p>
-              )}
-
-              {disciplinasFiltradas.map((turma) => {
-                const selecionada = selecionadas.some(
-                  (t) => t._id === turma._id
-                );
-
-                const vagas = getVagasInfo(turma);
-                const lotada = turma.vagasOcupadas >= turma.vagasTotais;
-
-                return (
-                  <div
-                    key={turma._id}
-                    onClick={() => toggleMateria(turma)}
-                    className="item-disciplina"
-                    style={{
-                      cursor: lotada ? "not-allowed" : "pointer",
-                      backgroundColor: selecionada ? "#198754" : "#fff",
-                      color: selecionada ? "#fff" : "#000",
-                      opacity: lotada ? 0.5 : 1
-                    }}
-                  >
-                    <strong>{getNomeDisciplina(turma)}</strong>
-                    <br />
-
-                    <small>Tipo: {getTipoDisciplina(turma)}</small>
-                    <br />
-
-                    {turma.disciplina?.semestre && (
-                      <>
-                        <small>Semestre: {turma.disciplina.semestre}º</small>
-                        <br />
-                      </>
-                    )}
-
-                    {turma.disciplina?.preRequisitos?.length > 0 && (
-                      <>
-                        <small>
-                          Pré-requisitos:{" "}
-                          {turma.disciplina.preRequisitos
-                            .map((pre) => pre.nome)
-                            .join(", ")}
-                        </small>
-                        <br />
-                      </>
-                    )}
-
-                    <small>Professor: {getNomeProfessor(turma)}</small>
-                    <br />
-
-                    <small>Sala: {turma.sala || "Sala não informada"}</small>
-                    <br />
-
-                    <small>
-                      {turma.dia} - {turma.horario} ({turma.turno})
-                    </small>
-                    <br />
-
-                    <small style={{ color: selecionada ? "#fff" : vagas.cor }}>
-                      {vagas.texto}
-                    </small>
-
-                    {lotada && (
-                      <div style={{ fontSize: "12px", color: "red" }}>
-                        Turma lotada
-                      </div>
-                    )}
-
-                    {selecionada && (
-                      <div style={{ fontSize: "12px" }}>✔ Selecionada</div>
-                    )}
-                  </div>
-                );
-              })}
-            </Accordion.Body>
-          </Accordion.Item>
-        </Accordion>
       </Container>
 
       <h2 className="mt-4">Manhã</h2>
 
-      <Table
-        striped
-        bordered
-        hover
-        responsive
-        className="text-center tabela-matricula"
-      >
+      <Table striped bordered hover responsive className="text-center tabela-matricula">
         <thead>
           <tr>
             <th>Horário</th>
@@ -395,13 +309,7 @@ function Matricula() {
 
       <h2 className="mt-4">Tarde</h2>
 
-      <Table
-        striped
-        bordered
-        hover
-        responsive
-        className="text-center tabela-matricula"
-      >
+      <Table striped bordered hover responsive className="text-center tabela-matricula">
         <thead>
           <tr>
             <th>Horário</th>
@@ -423,13 +331,7 @@ function Matricula() {
 
       <h2 className="mt-4">Noite</h2>
 
-      <Table
-        striped
-        bordered
-        hover
-        responsive
-        className="text-center tabela-matricula"
-      >
+      <Table striped bordered hover responsive className="text-center tabela-matricula">
         <thead>
           <tr>
             <th>Horário</th>
@@ -448,6 +350,104 @@ function Matricula() {
           ))}
         </tbody>
       </Table>
+
+      <Modal show={modalAberto} onHide={fecharModal} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Disciplinas disponíveis</Modal.Title>
+        </Modal.Header>
+
+        <Modal.Body>
+          {celulaSelecionada && (
+            <p>
+              <strong>{celulaSelecionada.dia}</strong> - Horário{" "}
+              <strong>{celulaSelecionada.celula}</strong> (
+              {celulaSelecionada.turno})
+            </p>
+          )}
+
+          {getTurmasDaCelula().length === 0 ? (
+            <p>Nenhuma disciplina disponível neste horário.</p>
+          ) : (
+            getTurmasDaCelula().map((turma) => {
+              const selecionada = selecionadas.some((t) => t._id === turma._id);
+              const vagas = getVagasInfo(turma);
+              const lotada = turma.vagasOcupadas >= turma.vagasTotais;
+
+              return (
+                <div
+                  key={turma._id}
+                  className="item-disciplina"
+                  onClick={() => !lotada && selecionarTurmaDaCelula(turma)}
+                  style={{
+                    cursor: lotada ? "not-allowed" : "pointer",
+                    backgroundColor: selecionada ? "#198754" : "#fff",
+                    color: selecionada ? "#fff" : "#000",
+                    opacity: lotada ? 0.5 : 1
+                  }}
+                >
+                  <strong>{getNomeDisciplina(turma)}</strong>
+                  <br />
+
+                  <small>Tipo: {getTipoDisciplina(turma)}</small>
+                  <br />
+
+                  {turma.disciplina?.semestre && (
+                    <>
+                      <small>Semestre: {turma.disciplina.semestre}º</small>
+                      <br />
+                    </>
+                  )}
+
+                  {turma.disciplina?.preRequisitos?.length > 0 && (
+                    <>
+                      <small>
+                        Pré-requisitos:{" "}
+                        {turma.disciplina.preRequisitos
+                          .map((pre) => pre.nome)
+                          .join(", ")}
+                      </small>
+                      <br />
+                    </>
+                  )}
+
+                  <small>Professor: {getNomeProfessor(turma)}</small>
+                  <br />
+
+                  <small>Sala: {turma.sala || "Sala não informada"}</small>
+                  <br />
+
+                  <small>
+                    {turma.dia} - {turma.horario} ({turma.turno})
+                  </small>
+                  <br />
+
+                  <small style={{ color: selecionada ? "#fff" : vagas.cor }}>
+                    {vagas.texto}
+                  </small>
+
+                  {lotada && (
+                    <div style={{ fontSize: "12px", color: "red" }}>
+                      Turma lotada
+                    </div>
+                  )}
+
+                  {selecionada && (
+                    <div style={{ fontSize: "12px" }}>
+                      ✔ Selecionada — clique para remover
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </Modal.Body>
+
+        <Modal.Footer>
+          <Button variant="secondary" onClick={fecharModal}>
+            Fechar
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
       <div className="mt-4 d-flex gap-2 justify-content-center">
         <Button onClick={salvar} variant="primary">

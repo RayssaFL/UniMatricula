@@ -10,16 +10,23 @@ function MeuAccordion({pauta,itens, eventKey}) {
           {pauta}
         </Accordion.Header>
         <Accordion.Body className="scroll-area">
-
-          <ListGroup>
            {itens.map((item, index) => (
-              <ListGroup.Item key={index}>
-                {item}
-              </ListGroup.Item>
+           typeof item === 'object' ? (
+            <div key={index} className="chat-card">
+              <div className="chat-princi">
+                <span className="chat-prof">{item.professor}</span>
+              </div>
+              <div className="chat-disci">{item.disciplina}</div>
+              <div className="chat-mensagem">{item.mensagem}</div>
+            </div>
+           ) : (
+            <p key={index} className="item-texto">{item}</p>
+           )
+
+             
             ))}
 
-          </ListGroup>
-
+         
         </Accordion.Body>
 
       </Accordion.Item>

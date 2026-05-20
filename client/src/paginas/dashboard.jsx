@@ -11,6 +11,7 @@ import MeuAccordion from "../Componentes/Listaacorde";
 import Accordion from "react-bootstrap/Accordion";
 import { getMinhaMatricula, verificarToken } from "../services/api";
 import "./dashboard.css";
+import AccordionDisci from "../Componentes/AcordeDisci";
 
 function Dashboard() {
   const [ativo, setAtivo] = useState("0");
@@ -18,6 +19,13 @@ function Dashboard() {
   const [disciplinasAluno, setDisciplinasAluno] = useState([]);
 
   const navigate = useNavigate();
+
+  const torpedos =  disciplinasAluno.map((item) => ({
+    professor: item.professor,
+    disciplina: item.nome,
+    mensagem: "A atividade foi liberada no AVA.",
+   
+  }));
 
   useEffect(() => {
     async function validar() {
@@ -37,12 +45,19 @@ function Dashboard() {
     async function carregarMatricula() {
       try {
         const matricula = await getMinhaMatricula();
-
+         console.log("Retorno da API:", matricula)
+        console.log("Turmas:", matricula?.turmas)
         if (matricula?.turmas) {
           const nomes = matricula.turmas.map(
-            (turma) => turma.disciplina?.nome || "Disciplina sem nome"
-          );
-
+            (turma) => ({
+             nome: turma.disciplina?.nome || "Disciplina sem nome",
+             professor: turma.professor?.nome || "Professor não informado",
+             sala: turma.sala || "Sala não informada",
+             dia: turma.dia || "Não informado",
+             horario: turma.horario || "Não informado",
+             turno : turma.turno || "Não informado"
+        }));
+ console.log("Turmas mapeadas:", nomes)
           setDisciplinasAluno(nomes);
         } else {
           setDisciplinasAluno([]);
@@ -65,14 +80,17 @@ function Dashboard() {
       <Container className="mt-5">
         <Row className="g-4 align-items-stretch">
           <Col md={8} className="d-flex">
+          <div className="w-100">
+          { disciplinasAluno.length > 0 ? (
+              <AccordionDisci disciplinas={disciplinasAluno} /> ) : (
             <Listateste
               titulo="Disciplinas"
               itens={
-                disciplinasAluno.length > 0
-                  ? disciplinasAluno
-                  : ["Nenhuma disciplina matriculada"]
-              }
+                 ["Nenhuma disciplina matriculada"]            
+                }
             />
+              )}
+              </div>
           </Col>
 
           <Col md={4} className="d-flex flex-column">
@@ -85,7 +103,8 @@ function Dashboard() {
               <MeuAccordion
                 eventKey="0"
                 pauta="Torpedos"
-                itens={["Torpedo1", "Torpedo2", "Torpedo3", "Torpedo4"]}
+                itens={torpedos}
+
               />
 
               <MeuAccordion
@@ -173,9 +192,9 @@ function Dashboard() {
           </Col>
         </Row>
       </Container>
-
-      <footer>
-        <p>Fundação Edson Queiroz © 2026. Todos os direitos reservados.</p>
+       <br/>
+      <footer className="mt-4">
+        <p className="rodape">Fundação Edson Queiroz © 2026. Todos os direitos reservados.</p>
       </footer>
     </>
   );
