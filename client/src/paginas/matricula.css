@@ -1,15 +1,31 @@
+h1 {
+  text-align: center;
+  margin: 20px 0;
+  font-weight: 700;
+  color: #000000;
+}
+
+h2 {
+  text-align: center;
+  margin: 25px 0 15px;
+  font-weight: 700;
+  color: #000000;
+}
+
 .item-disciplina {
   padding: 8px 12px;
   margin-top: 4px;
   border: 1px solid #dee2e6;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
   background-color: white;
   color: black;
+  transition: 0.2s;
 }
 
 .item-disciplina:hover {
   background-color: #f8f9fa;
+  transform: scale(1.01);
 }
 
 .tabela-matricula {
@@ -25,6 +41,7 @@
   text-align: center;
   overflow: hidden;
   word-wrap: break-word;
+  padding: 6px;
 }
 
 .celula-selecionada {
@@ -32,4 +49,98 @@
   color: white !important;
   font-weight: bold;
   border: 2px solid #145c32 !important;
+}
+
+.celula-click {
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.celula-click:hover {
+  background-color: #e9f5ff !important;
+}
+
+.celula-vazia {
+  font-size: 11px;
+  color: #6c757d;
+}
+
+.celula-selecionada:hover,
+.celula-selecionada.celula-click:hover {
+  background-color: #157347 !important;
+}
+
+@media (max-width: 768px) {
+  h1,
+  h2 {
+    font-size: 24px;
+  }
+
+  .tabela-matricula {
+    min-width: 750px;
+    font-size: 11px;
+  }
+
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 10px;
+  }
+
+  .tabela-matricula th,
+  .tabela-matricula td {
+    min-width: 95px;
+    height: 70px;
+    padding: 4px;
+    font-size: 10px;
+  }
+
+  .tabela-matricula th:first-child,
+  .tabela-matricula td:first-child {
+    position: sticky;
+    left: 0;
+    background: white;
+    z-index: 2;
+    font-weight: bold;
+  }
+
+  .celula-selecionada {
+    font-size: 10px;
+    line-height: 1.2;
+  }
+
+  .celula-selecionada strong {
+    display: block;
+    font-size: 10px;
+  }
+
+  .item-disciplina {
+    padding: 14px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    font-size: 14px;
+  }
+
+  .item-disciplina small {
+    font-size: 12px;
+  }
+
+  .d-flex.gap-2 {
+    flex-direction: column;
+    padding: 0 16px;
+  }
+
+  .d-flex.gap-2 button {
+    width: 100%;
+  }
+
+  input.form-control {
+    font-size: 14px;
+  }
+
+  footer {
+    text-align: center;
+    font-size: 12px;
+    padding: 16px;
+  }
 }

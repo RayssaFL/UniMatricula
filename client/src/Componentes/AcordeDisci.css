@@ -1,0 +1,15 @@
+
+.disci{
+  background-color: rgb(62, 138, 213);
+  color: white;
+  font-weight: 500;
+  padding: 6px 15px;
+  width: 100%;
+  display: block; 
+}
+
+.acorde{
+  max-height: 300px;
+  overflow-y: auto;
+  width: 100%;
+}
