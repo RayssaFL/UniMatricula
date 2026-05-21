@@ -12,8 +12,10 @@
   "dependencies": {
     "axios": "^1.16.1",
     "bootstrap": "^5.3.8",
+    "bootstrap-icons": "^1.13.1",
     "react": "^19.2.5",
     "react-bootstrap": "^2.10.10",
+    "react-circular-progressbar": "^2.2.0",
     "react-dom": "^19.2.5",
     "react-router-dom": "^7.14.2",
     "sass": "^1.99.0"

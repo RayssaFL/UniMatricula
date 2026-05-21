@@ -3,3 +3,33 @@
     overflow-y: auto;
     font-size: 17px;
 }
+.chat-card {
+  padding: 12px 16px;
+}
+
+
+.chat-princi {
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.chat-professor {
+  font-weight: 600;
+  font-size: 14px;
+  color: #000000;
+}
+
+
+.chat-disci {
+  font-size: 13px;
+  color: #838383;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.chat-mensagem {
+  font-size: 17px;
+  color: #838383;
+ 
+}

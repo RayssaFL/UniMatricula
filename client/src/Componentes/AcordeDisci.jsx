@@ -8,6 +8,7 @@ function AccordionDisci({disciplinas}) {
   return (
       <div className='h-100 w-100'>
       <div className="disci">
+       <i className="bi bi-list-task me-2"></i>
         Disciplinas
       </div>
     <div className='acorde'>

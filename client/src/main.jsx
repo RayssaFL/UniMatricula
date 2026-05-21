@@ -5,6 +5,8 @@ import App from "./App.jsx";
 import "./App.css"
 import "./index.css"
 import { BrowserRouter } from "react-router-dom";
+import 'bootstrap-icons/font/bootstrap-icons.css'
+
 createRoot(document.getElementById("root")).render(
   <StrictMode>
      <BrowserRouter>

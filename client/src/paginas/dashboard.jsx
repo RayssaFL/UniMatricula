@@ -77,7 +77,7 @@ function Dashboard() {
       <Avisos />
       <p className="desempenho">Desempenho</p>
 
-      <Container className="mt-5">
+      <Container fluid className="mt-5">
         <Row className="g-4 align-items-stretch">
           <Col md={8} className="d-flex">
           <div className="w-100">
@@ -85,8 +85,8 @@ function Dashboard() {
               <AccordionDisci disciplinas={disciplinasAluno} /> ) : (
             <Listateste
               titulo="Disciplinas"
-              itens={
-                 ["Nenhuma disciplina matriculada"]            
+                 itens={
+                ["Nenhuma disciplina matriculada"]            
                 }
             />
               )}
@@ -102,14 +102,22 @@ function Dashboard() {
             >
               <MeuAccordion
                 eventKey="0"
-                pauta="Torpedos"
+                pauta={<>
+                 <i className="bi bi-rocket-takeoff-fill me-2"></i>
+                 Torpedos
+                  </>}
                 itens={torpedos}
 
               />
 
               <MeuAccordion
                 eventKey="1"
-                pauta="Avisos"
+                pauta={
+                  <>
+                  <i class="bi bi-info-circle-fill me-2"></i>
+                  Avisos
+                  </>
+                }
                 itens={[
                   "A frequência de Março da turma T164-63 está disponível para consulta",
                   "A frequência de Março da turma T175-73 está disponível para consulta",
@@ -122,11 +130,15 @@ function Dashboard() {
         </Row>
       </Container>
 
-      <Container className="mt-5">
+      <Container fluid className="mt-5">
         <Row className="g-4">
           <Col md={8}>
             <Listateste
-              titulo="Notícias"
+              titulo={<>
+                <i class="bi bi-newspaper me-2"></i>
+                Notícias
+                   </>
+              }
               itens={[
                 "Unifor divulga relatório de Transparência e Igualdade Salarial de Mulheres e Homens - 2026.1",
                 "Marketing in Ação 2026 debate os impactos da Creator Economy na Unifor",
@@ -150,7 +162,12 @@ function Dashboard() {
             >
               <MeuAccordion
                 eventKey="0"
-                pauta="Agenda"
+                pauta={
+                  <>
+                  <i class="bi bi-clock me-2"></i>
+                  Agenda
+                  </>
+                }
                 itens={[
                   "Aula de Desenv Plataformas Web (T242 - 13)",
                   "Aula de Desenv Plataformas Web (T242 - 13)",
@@ -163,7 +180,11 @@ function Dashboard() {
 
               <MeuAccordion
                 eventKey="1"
-                pauta="Calendário de Eventos"
+                pauta={<>
+                  <i class="bi bi-calendar me-2"></i>
+                  Calendário de Eventos
+                  </>
+                }
                 itens={[
                   "01/05 Dia do trabalho - Feriado",
                   "05/05 Data final para digitação e entrega de frequência do mês de Abril",
@@ -174,13 +195,20 @@ function Dashboard() {
 
               <MeuAccordion
                 eventKey="2"
-                pauta="Grupo de Trabalho"
+                pauta={<>
+                  <i class="bi bi-people me-2"></i>
+                  Grupo de Trabalho
+                </>}
                 itens={["#SOUCCT 2025.1"]}
               />
 
               <MeuAccordion
                 eventKey="3"
-                pauta="Pilares da Unifor"
+                pauta={<>
+                  <i class="bi bi-info-circle-fill me-2"></i>
+                  Pilares da Unifor
+                     </>
+                }
                 itens={[
                   "Missão: Contribuir para o desenvolvimento socioeconômico, científico e cultural, por meio da formação de profissionais de excelência, da pesquisa e da extensão universitária.",
                   "Visão: Ser uma das 10 melhores universidades particulares do Brasil até 2030.",
