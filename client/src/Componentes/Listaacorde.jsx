@@ -11,7 +11,19 @@ function MeuAccordion({pauta,itens, eventKey}) {
         </Accordion.Header>
         <Accordion.Body className="scroll-area">
            {itens.map((item, index) => (
-           typeof item === 'object' ? (
+           item.tipo === "horario" ? (
+          <div key={index} className="horario-card">
+           <span className="horario-badge">
+              {item.sigla}
+              </span>
+  
+              <span>
+             {item.horario}
+              </span>
+             </div>
+
+         ) : typeof item === "object" ? (
+
             <div key={index} className="chat-card">
               <div className="chat-princi">
                 <span className="chat-prof">{item.professor}</span>

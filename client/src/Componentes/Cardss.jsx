@@ -50,21 +50,19 @@ function Avisos() {
 
         </Card.Body>
       </Card>
-
-      <Card>
+<Card>
         <Card.Body className="text-center">
           <Card.Title>Assiduidade</Card.Title>
 
           <div className="progresso-card">
             <CircularProgressbar
-              value={90}
-              text="90%"
+              value={0}
+              text="0%"
             />
           </div>
 
         </Card.Body>
       </Card>
-
     </CardGroup>
   );
 }
