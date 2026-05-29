@@ -25,7 +25,7 @@ function BasicExample() {
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
-          <Nav className="me-auto gap-4">
+          <Nav className="w-100 align-items-center gap-4">
             <Nav.Link href="/dashboard">
               Início
             </Nav.Link>
@@ -43,21 +43,17 @@ function BasicExample() {
               <NavDropdown.Item href="#action/3.4">
                 Aptas a cursar
               </NavDropdown.Item>
-              <NavDropdown.Divider />
-            </NavDropdown>
-            <NavDropdown title="Perfil" id="perfil-dropdown">
-              <NavDropdown.Item href="#action/3.1">
-                Perfil
-              </NavDropdown.Item>
-              <NavDropdown.Item href="#action/3.2">
-                Atualizar
+              <NavDropdown.Item href="#action/3.5">
+                Matrícula especial
               </NavDropdown.Item>
               <NavDropdown.Divider />
-              <NavDropdown.Item onClick={sair}>
-                Sair
-              </NavDropdown.Item>
             </NavDropdown>
-          </Nav>
+            <div className="ms-auto">
+             <Nav.Link onClick={sair}>
+             Sair
+            </Nav.Link>
+            </div>
+         </Nav>
         </Navbar.Collapse>
       </Container>
     </Navbar>

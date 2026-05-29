@@ -23,7 +23,7 @@ function Matricula() {
   const [temMatricula, setTemMatricula] = useState(false);
   const [modalAberto, setModalAberto] = useState(false);
   const [celulaSelecionada, setCelulaSelecionada] = useState(null);
-
+  const [busca, setBusca] = useState(""); 
   const navigate = useNavigate();
 
   let aluno = null;
@@ -172,16 +172,25 @@ function Matricula() {
     setCelulaSelecionada(null);
   }
 
-  function getTurmasDaCelula() {
-    if (!celulaSelecionada) return [];
+function getTurmasDaCelula() {
+  const texto = busca.toLowerCase();
 
-    return disciplinas.filter(
-      (turma) =>
-        turma.dia === celulaSelecionada.dia &&
-        turma.turno === celulaSelecionada.turno &&
-        horarioContemCelula(turma.horario, celulaSelecionada.celula)
-    );
-  }
+  return disciplinas.filter((turma) => {
+    const passaNoTexto =
+      getNomeDisciplina(turma).toLowerCase().includes(texto) ||
+      getNomeProfessor(turma).toLowerCase().includes(texto) ||
+      getTipoDisciplina(turma).toLowerCase().includes(texto);
+
+    const passaNoHorario =
+      celulaSelecionada
+        ? turma.dia === celulaSelecionada.dia &&
+          turma.turno === celulaSelecionada.turno &&
+          horarioContemCelula(turma.horario, celulaSelecionada.celula)
+        : true;
+
+    return passaNoTexto && passaNoHorario;
+  });
+}
 
   function selecionarTurmaDaCelula(turma) {
     toggleMateria(turma);
@@ -362,8 +371,15 @@ function Matricula() {
               <strong>{celulaSelecionada.celula}</strong> (
               {celulaSelecionada.turno})
             </p>
+ 
           )}
-
+           <input
+           type="text"
+           className="form-control mb-3"
+           placeholder="Pesquisar disciplina, professor, tipo, sala ou semestre..."
+           value={busca}
+           onChange={(e) => setBusca(e.target.value)}
+           />
           {getTurmasDaCelula().length === 0 ? (
             <p>Nenhuma disciplina disponível neste horário.</p>
           ) : (
