@@ -24,7 +24,6 @@ function Matricula() {
   const [busca, setBusca] = useState("");
   const [modalAberto, setModalAberto] = useState(false);
   const [celulaSelecionada, setCelulaSelecionada] = useState(null);
-  const [busca, setBusca] = useState(""); 
   const navigate = useNavigate();
 
   let aluno = null;
