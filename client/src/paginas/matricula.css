@@ -45,10 +45,10 @@ h2 {
 }
 
 .celula-selecionada {
-  background-color: #198754 !important;
+  background-color: #195b87 !important;
   color: white !important;
   font-weight: bold;
-  border: 2px solid #145c32 !important;
+  border: 2px solid #2a579e !important;
 }
 
 .celula-click {
@@ -143,4 +143,47 @@ h2 {
     font-size: 12px;
     padding: 16px;
   }
+}
+
+.celula-click {
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.celula-click:hover {
+  background-color: #e9f5ff !important;
+}
+
+.celula-vazia {
+  font-size: 11px;
+  color: #6c757d;
+}
+
+.celula-selecionada:hover {
+  background-color: #4885ba !important;
+}
+
+.celula-selecionada.celula-click:hover {
+  background-color: #2a7bc2 !important;
+}
+
+.rodapes{
+  text-align:center;
+}
+
+.centro{
+  text-align:center ;
+}
+
+.dia{
+    background-color: #dddcdc !important;
+    color: rgb(0, 0, 0) !important;
+    font-weight: bold;
+    text-align: center;
+}
+
+.horario{
+    background-color: #dddddd !important;
+    color: rgb(0, 0, 0) !important;
+    width: 100px;
 }

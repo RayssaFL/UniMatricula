@@ -24,7 +24,7 @@ function Matricula() {
   const [busca, setBusca] = useState("");
   const [modalAberto, setModalAberto] = useState(false);
   const [celulaSelecionada, setCelulaSelecionada] = useState(null);
-
+  const [busca, setBusca] = useState(""); 
   const navigate = useNavigate();
 
   let aluno = null;
@@ -163,23 +163,27 @@ function Matricula() {
     setCelulaSelecionada(null);
     setBusca("");
   }
-  function getTurmasDaCelula() {
-    if (!celulaSelecionada) return [];
-    const texto = busca.toLowerCase();
-    return disciplinas.filter((turma) => {
-      const pertenceAoHorario =
-        turma.dia === celulaSelecionada.dia &&
-        turma.turno === celulaSelecionada.turno &&
-        horarioContemCelula(turma.horario, celulaSelecionada.celula);
-      const passaNoFiltro =
-        getNomeDisciplina(turma).toLowerCase().includes(texto) ||
-        getNomeProfessor(turma).toLowerCase().includes(texto) ||
-        getTipoDisciplina(turma).toLowerCase().includes(texto) ||
-        turma.sala?.toLowerCase().includes(texto) ||
-        String(turma.disciplina?.semestre || "").includes(texto);
-      return pertenceAoHorario && passaNoFiltro;
-    });
-  }
+
+function getTurmasDaCelula() {
+  const texto = busca.toLowerCase();
+
+  return disciplinas.filter((turma) => {
+    const passaNoTexto =
+      getNomeDisciplina(turma).toLowerCase().includes(texto) ||
+      getNomeProfessor(turma).toLowerCase().includes(texto) ||
+      getTipoDisciplina(turma).toLowerCase().includes(texto);
+
+    const passaNoHorario =
+      celulaSelecionada
+        ? turma.dia === celulaSelecionada.dia &&
+          turma.turno === celulaSelecionada.turno &&
+          horarioContemCelula(turma.horario, celulaSelecionada.celula)
+        : true;
+
+    return passaNoTexto && passaNoHorario;
+  });
+}
+
   function selecionarTurmaDaCelula(turma) {
     toggleMateria(turma);
     fecharModal();
@@ -245,7 +249,8 @@ function Matricula() {
   return (
     <>
       <Navbar />
-      <h1>Matrícula</h1>
+     <br/>
+     <h1 className="centro">Matrícula</h1>
       <Container className="mt-4">
         <Row className="g-3">
           <Col md={12}>
@@ -262,58 +267,64 @@ function Matricula() {
           Disciplinas selecionadas: <strong>{selecionadas.length}</strong>
         </p>
       </Container>
-      <h2 className="mt-4">Manhã</h2>
+      <br/>
+      <h2 className="centro">Manhã</h2>
+      <br/>
       <Table striped bordered hover responsive className="text-center tabela-matricula">
         <thead>
           <tr>
-            <th>Horário</th>
+            <th className="horario">Horário</th>
             {dias.map((d) => (
-              <th key={d}>{d}</th>
+              <th key={d} className="dia">{d}</th>
             ))}
           </tr>
         </thead>
         <tbody>
           {horariosManha.map((h) => (
             <tr key={h}>
-              <td>{h}</td>
+              <td className="horario">{h}</td>
               {dias.map((d) => renderCell(d, h, "Manhã"))}
             </tr>
           ))}
         </tbody>
       </Table>
-      <h2 className="mt-4">Tarde</h2>
+      <br/>
+      <h2 className="centro">Tarde</h2>
+      <br/>
       <Table striped bordered hover responsive className="text-center tabela-matricula">
         <thead>
           <tr>
-            <th>Horário</th>
+            <th className="horario">Horário</th>
             {dias.map((d) => (
-              <th key={d}>{d}</th>
+              <th key={d} className="dia">{d}</th>
             ))}
           </tr>
         </thead>
         <tbody>
           {horariosTarde.map((h) => (
             <tr key={h}>
-              <td>{h}</td>
+              <td className="horario">{h}</td>
               {dias.map((d) => renderCell(d, h, "Tarde"))}
             </tr>
           ))}
         </tbody>
       </Table>
-      <h2 className="mt-4">Noite</h2>
+      <br/>
+      <h2 className="centro">Noite</h2>
+      <br/>
       <Table striped bordered hover responsive className="text-center tabela-matricula">
         <thead>
           <tr>
-            <th>Horário</th>
+            <th className="horario">Horário</th>
             {dias.map((d) => (
-              <th key={d}>{d}</th>
+              <th key={d} className="dia">{d}</th>
             ))}
           </tr>
         </thead>
         <tbody>
           {horariosNoite.map((h) => (
             <tr key={h}>
-              <td>{h}</td>
+              <td className="horario">{h}</td>
               {dias.map((d) => renderCell(d, h, "Noite"))}
             </tr>
           ))}
@@ -330,14 +341,15 @@ function Matricula() {
               <strong>{celulaSelecionada.celula}</strong> (
               {celulaSelecionada.turno})
             </p>
+ 
           )}
-          <input
-            type="text"
-            className="form-control mb-3"
-            placeholder="Pesquisar disciplina, professor, tipo, sala ou semestre..."
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)}
-          />
+           <input
+           type="text"
+           className="form-control mb-3"
+           placeholder="Pesquisar disciplina, professor, tipo, sala ou semestre..."
+           value={busca}
+           onChange={(e) => setBusca(e.target.value)}
+           />
           {getTurmasDaCelula().length === 0 ? (
             <p>Nenhuma disciplina disponível neste horário.</p>
           ) : (
@@ -352,7 +364,7 @@ function Matricula() {
                   onClick={() => !lotada && selecionarTurmaDaCelula(turma)}
                   style={{
                     cursor: lotada ? "not-allowed" : "pointer",
-                    backgroundColor: selecionada ? "#198754" : "#fff",
+                    backgroundColor: selecionada ? "#4885ba" : "#fff",
                     color: selecionada ? "#fff" : "#000",
                     opacity: lotada ? 0.5 : 1
                   }}>
@@ -424,7 +436,7 @@ function Matricula() {
       </div>
 
       <footer className="mt-4">
-        <p>Fundação Edson Queiroz © 2026. Todos os direitos reservados.</p>
+        <p className="rodapes">Fundação Edson Queiroz © 2026. Todos os direitos reservados.</p>
       </footer>
     </>
   );

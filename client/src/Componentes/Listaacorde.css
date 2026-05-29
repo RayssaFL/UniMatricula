@@ -1,5 +1,46 @@
 .scroll-area {
-    max-height: 300px;
-    overflow-y: auto;
-    font-size: 17px;
+   overflow:visible;
+}
+.chat-card {
+  padding: 12px 16px;
+}
+
+
+.chat-disci {
+  font-size: 13px;
+  color: #838383;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.chat-mensagem {
+  font-size: 17px;
+  color: #838383;
+ 
+}
+
+.horario-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  background: #f8f9fa;
+  border-radius: 12px;
+
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.horario-badge {
+  background: rgb(62, 138, 213);
+  color: white;
+
+  padding: 5px 10px;
+
+  font-weight: bold;
+}
+
+.accordion-body {
+  max-height: 250px;
+  overflow-y: auto;
 }

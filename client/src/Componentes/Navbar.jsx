@@ -25,13 +25,11 @@ function BasicExample() {
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
-          <Nav className="me-auto">
+          <Nav className="w-100 align-items-center gap-4">
             <Nav.Link href="/dashboard">
               Início
             </Nav.Link>
-            <Nav.Link href="#">
-              Rendimento
-            </Nav.Link>
+           
             <NavDropdown title="Matrícula" id="matricula-dropdown">
               <NavDropdown.Item href="/matricula">
                 Matrícula
@@ -50,31 +48,12 @@ function BasicExample() {
               </NavDropdown.Item>
               <NavDropdown.Divider />
             </NavDropdown>
-            <Nav.Link href="#">
-              Financeiro
+            <div className="ms-auto">
+             <Nav.Link onClick={sair}>
+             Sair
             </Nav.Link>
-            <Nav.Link href="#">
-              Biblioteca
-            </Nav.Link>
-            <Nav.Link href="#">
-              Serviços
-            </Nav.Link>
-            <Nav.Link href="#">
-              Educação Virtual
-            </Nav.Link>
-            <NavDropdown title="Perfil" id="perfil-dropdown">
-              <NavDropdown.Item href="#action/3.1">
-                Perfil
-              </NavDropdown.Item>
-              <NavDropdown.Item href="#action/3.2">
-                Atualizar
-              </NavDropdown.Item>
-              <NavDropdown.Divider />
-              <NavDropdown.Item onClick={sair}>
-                Sair
-              </NavDropdown.Item>
-            </NavDropdown>
-          </Nav>
+            </div>
+         </Nav>
         </Navbar.Collapse>
       </Container>
     </Navbar>

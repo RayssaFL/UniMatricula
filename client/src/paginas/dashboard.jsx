@@ -12,20 +12,13 @@ import Accordion from "react-bootstrap/Accordion";
 import { getMinhaMatricula, verificarToken } from "../services/api";
 import "./dashboard.css";
 import AccordionDisci from "../Componentes/AcordeDisci";
+import CardExemplo from "../Componentes/Card2";
+import Grades from "../Componentes/Grade"
 
 function Dashboard() {
-  const [ativo, setAtivo] = useState("0");
-  const [ativoBaixo, setAtivoBaixo] = useState("0");
   const [disciplinasAluno, setDisciplinasAluno] = useState([]);
 
   const navigate = useNavigate();
-
-  const torpedos =  disciplinasAluno.map((item) => ({
-    professor: item.professor,
-    disciplina: item.nome,
-    mensagem: "A atividade foi liberada no AVA.",
-   
-  }));
 
   useEffect(() => {
     async function validar() {
@@ -74,123 +67,150 @@ function Dashboard() {
       <Avisos />
       <p className="desempenho">Desempenho</p>
 
-      <Container className="mt-5">
-        <Row className="g-4 align-items-stretch">
-          <Col md={8} className="d-flex">
-          <div className="w-100">
+      <Container fluid className="mt-3">
+        <Row className="g-4 align-items-start">
+          <Col md={6}>
+          <div className="caixa-disciplinas">
           { disciplinasAluno.length > 0 ? (
               <AccordionDisci disciplinas={disciplinasAluno} /> ) : (
             <Listateste
               titulo="Disciplinas"
-              itens={
-                 ["Nenhuma disciplina matriculada"]            
+                 itens={
+                ["Nenhuma disciplina matriculada"]            
                 }
-            />
+              />
               )}
               </div>
           </Col>
 
-          <Col md={4} className="d-flex flex-column">
-            <Accordion
-              activeKey={ativo}
-              onSelect={(eventKey) => {
-                if (eventKey !== null) setAtivo(eventKey);
-              }}
-            >
-              <MeuAccordion
-                eventKey="0"
-                pauta="Torpedos"
-                itens={torpedos}
-
-              />
-
-              <MeuAccordion
-                eventKey="1"
-                pauta="Avisos"
-                itens={[
-                  "A frequência de Março da turma T164-63 está disponível para consulta",
-                  "A frequência de Março da turma T175-73 está disponível para consulta",
-                  "A frequência de Março da turma T194-69 está disponível para consulta",
-                  "A frequência de Março da turma T123-23 está disponível para consulta"
-                ]}
-              />
-            </Accordion>
+          <Col md={6}>
+        <div className="w-100">
+        <Grades disciplinas={disciplinasAluno || []} />
+       </div>
           </Col>
         </Row>
       </Container>
 
-      <Container className="mt-5">
-        <Row className="g-4">
-          <Col md={8}>
+      <Container fluid className="mt-3">
+        <Row className="g-4 align-items-start">
+          <Col md={6}>
             <Listateste
-              titulo="Notícias"
+              titulo={<>
+                <i className="bi bi-newspaper me-2"></i>
+                 <span className="titulo-padrao">
+                Saiba mais sobre todos os cursos disponíveis na Unifor!!
+               </span>
+                   </>
+              }
               itens={[
-                "Unifor divulga relatório de Transparência e Igualdade Salarial de Mulheres e Homens - 2026.1",
-                "Marketing in Ação 2026 debate os impactos da Creator Economy na Unifor",
-                "Cerimônia do Trigo 2026.1 marca acolhida de novos alunos de Nutrição",
-                "Da colaboração com Anitta à sala de aula: Unifor recebe Luis Matuto em masterclass de Design",
-                "Edital oferece bolsa da Funcap para o Mestrado em Saúde Coletiva da Unifor",
-                "Unifor abre inscrições para a Feira de Profissões 2026",
-                "Unifor divulga resultado dos Editais de Iniciação Científica e Tecnológica 2025",
-                "Unifor em Salamanca: Santander Top España 2026 com inscrições abertas",
-                " "
+                <a href="https://unifor.br/web/graduacao/todos-os-cursos?gad_source=1&gad_campaignid=23739118457&gbraid=0AAAAADRl9tu83oZMX84LBWYmZh7Mu7kP1&gclid=CjwKCAjw2rrQBhBuEiwAarLWHSPgunLt4arBr4G8BBeE88rMyKMKf_0ybPyj0QCzys9sTRdsGhYYqBoCNH8QAvD_BwE">Aqui você consegue ter acesso a todos os cursos. Clique já e descubra mais!!</a>
+             
               ]}
             />
+          
+             
+            <CardExemplo
+             className="mt-3"
+              titulo={<>
+                <i className="bi bi-newspaper me-2"></i>
+                 <span className="titulo-padrao">
+                Orientações de matrícula.
+                  </span>
+                   </>
+                 
+              }
+
+              itens={[
+               "1) Primeiramente escolha as disciplinas obrigatórias.",
+               "2) Depois selecione as optativas.",
+               "3) Clique sobre um horário destacado na grade para visualizar informações detalhadas da disciplina, como sala, professor e período da aula.",
+               "4) Finalize sua matrícula antes do prazo."
+              ]}
+            
+              />
           </Col>
+      
+        
+          <Col md={6}>
+ <div className="horarios-box">
 
-          <Col md={4}>
-            <Accordion
-              activeKey={ativoBaixo}
-              onSelect={(eventKey) => {
-                if (eventKey !== null) setAtivoBaixo(eventKey);
-              }}
-            >
-              <MeuAccordion
-                eventKey="0"
-                pauta="Agenda"
-                itens={[
-                  "Aula de Desenv Plataformas Web (T242 - 13)",
-                  "Aula de Desenv Plataformas Web (T242 - 13)",
-                  "Aula de Desenv Plataformas Web (T242 - 13)",
-                  "Aula de Desenv Plataformas Web (T242 - 13)",
-                  "Aula de Desenv Plataformas Web (T242 - 13)",
-                  "Aula de Desenv Plataformas Web (T242 - 13)"
-                ]}
-              />
+  <div className="horarios-titulo">
+    <i className="bi bi-clock me-2"></i>
+    Tradução dos horários
+  </div>
 
-              <MeuAccordion
-                eventKey="1"
-                pauta="Calendário de Eventos"
-                itens={[
-                  "01/05 Dia do trabalho - Feriado",
-                  "05/05 Data final para digitação e entrega de frequência do mês de Abril",
-                  "14/05 e 15/05 Feira de Profissões",
-                  "15/05 Data final para registro da Av2"
-                ]}
-              />
+  <div className="horarios-conteudo">
 
-              <MeuAccordion
-                eventKey="2"
-                pauta="Grupo de Trabalho"
-                itens={["#SOUCCT 2025.1"]}
-              />
+    <div className="horario-card">
+      <span className="horario-badge">MAB</span>
+      <span>07:30 às 09:10</span>
+    </div>
 
-              <MeuAccordion
-                eventKey="3"
-                pauta="Pilares da Unifor"
-                itens={[
-                  "Missão: Contribuir para o desenvolvimento socioeconômico, científico e cultural, por meio da formação de profissionais de excelência, da pesquisa e da extensão universitária.",
-                  "Visão: Ser uma das 10 melhores universidades particulares do Brasil até 2030.",
-                  "Valores: Buscamos o que é melhor para o aluno e focamos os nossos esforços objetivando a qualidade da sua aprendizagem e o seu encantamento em relação à sua experiência na Unifor;",
-                  "Ética: Agimos e comunicamos de acordo com os valores que norteiam uma conduta íntegra, respeitando as normas públicas e os regulamentos internos, de forma transparente;"
-                ]}
-              />
-            </Accordion>
+    <div className="horario-card">
+      <span className="horario-badge">MCD</span>
+      <span>09:30 às 11:10</span>
+    </div>
+
+    <div className="horario-card">
+      <span className="horario-badge">MEF</span>
+      <span>11:20 às 13:00</span>
+    </div>
+
+    <div className="horario-card">
+      <span className="horario-badge">TAB</span>
+      <span>13:30 às 15:10</span>
+    </div>
+
+    <div className="horario-card">
+      <span className="horario-badge">TCD</span>
+      <span>15:30 às 17:10</span>
+    </div>
+
+    <div className="horario-card">
+      <span className="horario-badge">TEF</span>
+      <span>17:20 às 19:00</span>
+    </div>
+
+    <div className="horario-card">
+      <span className="horario-badge">NAB</span>
+      <span>19:00 às 20:40</span>
+    </div>
+
+     <div className="horario-card">
+      <span className="horario-badge">NCD</span>
+      <span>21:00 às 22:40</span>
+    </div>
+
+  </div>
+</div>    
+      
+      
           </Col>
-        </Row>
-      </Container>
-       <br/>
-      <footer >
+         </Row>
+        </Container>
+        <br />
+ <div className="caixa-dicas">
+
+  <div className="titulo-dicas">
+    <i className="bi bi-info-circle me-2"></i>
+    Mais informações.
+  </div>
+
+  <div className="conteudo-dicas">
+  <p>
+     Os horários da grade são organizados por turno e por letras.
+    </p>
+    <p>
+     M = Manhã, T = Tarde e N = Noite.
+    </p>
+    <p>
+   Os horários destacados indicam disciplinas matriculadas. Clique sobre eles para consultar detalhes da aula.
+    </p>
+ </div>
+
+</div>
+<br />
+      <footer className="mt-3">
         <p className="rodape">Fundação Edson Queiroz © 2026. Todos os direitos reservados.</p>
       </footer>
     </>

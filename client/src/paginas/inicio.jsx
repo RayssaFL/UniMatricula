@@ -78,7 +78,7 @@ function Inicio() {
         <div className='fundo' style={{ backgroundImage: `url(${fundo})` }}>
             <div className='todo'>
                 <img src={logo} alt="" className='imagem' />
-
+                <br />
                 <div className='titulos'>
                     <h1>Acesso ao Unifor online</h1>
                     <h2>Aqui você encontra os serviços digitais da Universidade de Fortaleza.</h2>
@@ -87,7 +87,7 @@ function Inicio() {
                 <form onSubmit={Ler} className="container">
 
                     <Form.Group className="mb-3">
-                        <Form.Label>Matrícula</Form.Label>
+                        <Form.Label >Matrícula</Form.Label>
                         <Form.Control
                             type="text"
                             value={matricula}
@@ -95,7 +95,7 @@ function Inicio() {
                                 const valor = e.target.value.replace(/\D/g, "");
                                 setMatricula(valor);
                             }}
-                            className={erros.matricula ? "is-invalid" : ""}
+                            className={`input-borda ${erros.matricula ? "is-invalid" : ""}`}
                         />
                         {erros.matricula && (
                             <div className="invalid-feedback">
@@ -105,7 +105,7 @@ function Inicio() {
                     </Form.Group>
 
                     <Form.Group className="mb-3">
-                        <Form.Label>Senha</Form.Label>
+                        <Form.Label >Senha</Form.Label>
                         <Form.Control
                             type="password"
                             value={senha}
@@ -113,15 +113,15 @@ function Inicio() {
                                 const valor = e.target.value.replace(/\D/g, "");
                                 setSenha(valor);
                             }}
-                            className={erros.senha ? "is-invalid" : ""}
+                            className={`input-borda ${erros.senha ? "is-invalid" : ""}`}
                         />
                         {erros.senha && (
                             <div className="invalid-feedback">
                                 {erros.senha}
                             </div>
                         )}
-
-                        <p><a href="#">Esqueceu a senha?</a></p>
+                        <br />
+                        <p className="questao"><a href="#">Esqueceu a senha?</a></p>
 
                         {erros.geral && (
                             <div className="alert alert-danger">
@@ -140,8 +140,8 @@ function Inicio() {
                             }
                         </Button>
 
-                        <p>
-                            <a href="https://unifor.br/">Voltar para o portal Unifor</a>
+                        <p className="volta">
+                            <a href="https://unifor.br/">Retornar para o portal Unifor</a>
                         </p>
 
                     </Form.Group>

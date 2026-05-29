@@ -61,3 +61,16 @@ height: 60px;
   margin-top: 15px;
   margin-bottom: 15px;
 }
+
+.questao{
+  text-align: right;
+}
+
+.volta{
+  text-align: center;
+}
+
+.input-borda{
+    border: 1px solid #b5b5b5;
+    border-radius: 20px;
+}
