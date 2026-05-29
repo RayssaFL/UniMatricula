@@ -4,11 +4,36 @@ import jwt from "jsonwebtoken";
 
 export const cadastrarAluno = async (req, res) => {
   try {
-    const { nome, matricula, senha, cpf, email, curso } = req.body;
+    const {
+      nome,
+      matricula,
+      senha,
+      cpf,
+      email,
+      telefone,
+      dataNascimento,
+      statusFinanceiro,
+      curso,
+      semestreAtual,
+      disciplinasConcluidas,
+      status
+    } = req.body;
     if (!nome || !matricula || !senha) {
       return res.status(400).json({
         ok: false,
         msg: "Nome, matrícula e senha são obrigatórios"
+      });
+    }
+    if (!curso) {
+      return res.status(400).json({
+        ok: false,
+        msg: "Curso é obrigatório"
+      });
+    }
+    if (!semestreAtual) {
+      return res.status(400).json({
+        ok: false,
+        msg: "Semestre atual é obrigatório"
       });
     }
     const existe = await Aluno.findOne({ matricula });
@@ -25,9 +50,15 @@ export const cadastrarAluno = async (req, res) => {
       senha: hash,
       cpf,
       email,
-      curso
+      telefone,
+      dataNascimento,
+      statusFinanceiro,
+      curso,
+      semestreAtual,
+      disciplinasConcluidas: disciplinasConcluidas || [],
+      status
     });
-    res.status(201).json({
+    return res.status(201).json({
       ok: true,
       msg: "Aluno cadastrado com sucesso",
       aluno: {
@@ -36,11 +67,17 @@ export const cadastrarAluno = async (req, res) => {
         matricula: aluno.matricula,
         cpf: aluno.cpf,
         email: aluno.email,
-        curso: aluno.curso
+        telefone: aluno.telefone,
+        dataNascimento: aluno.dataNascimento,
+        statusFinanceiro: aluno.statusFinanceiro,
+        curso: aluno.curso,
+        semestreAtual: aluno.semestreAtual,
+        disciplinasConcluidas: aluno.disciplinasConcluidas,
+        status: aluno.status
       }
     });
   } catch (err) {
-    res.status(500).json({
+    return res.status(500).json({
       ok: false,
       msg: "Erro ao cadastrar aluno",
       erro: err.message
@@ -75,7 +112,8 @@ export const loginAluno = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
-    res.json({
+
+    return res.json({
       ok: true,
       msg: "Login realizado com sucesso",
       token,
@@ -85,11 +123,17 @@ export const loginAluno = async (req, res) => {
         matricula: aluno.matricula,
         cpf: aluno.cpf,
         email: aluno.email,
-        curso: aluno.curso
+        telefone: aluno.telefone,
+        dataNascimento: aluno.dataNascimento,
+        statusFinanceiro: aluno.statusFinanceiro,
+        curso: aluno.curso,
+        semestreAtual: aluno.semestreAtual,
+        disciplinasConcluidas: aluno.disciplinasConcluidas,
+        status: aluno.status
       }
     });
   } catch (err) {
-    res.status(500).json({
+    return res.status(500).json({
       ok: false,
       msg: "Erro ao fazer login",
       erro: err.message

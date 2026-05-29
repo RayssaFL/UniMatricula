@@ -1,3 +1,17 @@
+h1 {
+  text-align: center;
+  margin: 20px 0;
+  font-weight: 700;
+  color: #000000;
+}
+
+h2 {
+  text-align: center;
+  margin: 25px 0 15px;
+  font-weight: 700;
+  color: #000000;
+}
+
 .item-disciplina {
   padding: 8px 12px;
   margin-top: 4px;
@@ -37,11 +51,28 @@
   border: 2px solid #2a579e !important;
 }
 
-@media (max-width: 768px) {
+.celula-click {
+  cursor: pointer;
+  transition: 0.2s;
+}
 
+.celula-click:hover {
+  background-color: #e9f5ff !important;
+}
+
+.celula-vazia {
+  font-size: 11px;
+  color: #6c757d;
+}
+
+.celula-selecionada:hover,
+.celula-selecionada.celula-click:hover {
+  background-color: #157347 !important;
+}
+
+@media (max-width: 768px) {
   h1,
   h2 {
-    text-align: center;
     font-size: 24px;
   }
 
@@ -63,7 +94,6 @@
     padding: 4px;
     font-size: 10px;
   }
-
 
   .tabela-matricula th:first-child,
   .tabela-matricula td:first-child {
@@ -95,7 +125,6 @@
     font-size: 12px;
   }
 
-
   .d-flex.gap-2 {
     flex-direction: column;
     padding: 0 16px;
@@ -105,11 +134,9 @@
     width: 100%;
   }
 
-
   input.form-control {
     font-size: 14px;
   }
-
 
   footer {
     text-align: center;

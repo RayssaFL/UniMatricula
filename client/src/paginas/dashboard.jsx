@@ -38,8 +38,6 @@ function Dashboard() {
     async function carregarMatricula() {
       try {
         const matricula = await getMinhaMatricula();
-         console.log("Retorno da API:", matricula)
-        console.log("Turmas:", matricula?.turmas)
         if (matricula?.turmas) {
           const nomes = matricula.turmas.map(
             (turma) => ({
@@ -50,7 +48,6 @@ function Dashboard() {
              horario: turma.horario || "Não informado",
              turno : turma.turno || "Não informado"
         }));
- console.log("Turmas mapeadas:", nomes)
           setDisciplinasAluno(nomes);
         } else {
           setDisciplinasAluno([]);
